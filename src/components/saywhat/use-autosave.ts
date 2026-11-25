@@ -1,13 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import type { Aspect, CaptionStyle, Word } from "@/lib/captions/types"
-import type { ProjectPatch } from "@/lib/project-schema"
+import { diffSnapshot, normalizeSnapshot, type EditorSnapshot, type ProjectPatch } from "@/lib/project-schema"
 import { useEditor } from "@/store/editor"
 
 export type SaveStatus = "saved" | "saving" | "error"
 
-type Saved = { words: Word[]; style: CaptionStyle | null; aspect: Aspect; title: string }
+type Saved = EditorSnapshot
 
 /**
  * Last version of each project this tab saved. Next keeps visited pages mounted, so a page
@@ -20,13 +19,14 @@ const RETRY_MS = 5000
 
 /**
  * Debounced autosave of the open project (words, style, aspect, title) to PATCH /api/projects/:id.
- * `initial` is what the server has; anything in the store that differs from it gets saved.
+ * `initial` is what the server has; anything in the store that differs from its normalized form
+ * gets saved. Normalizing the baseline too keeps a freshly opened project from looking edited.
  */
 export function useAutosave(projectId: string, initial: Saved): SaveStatus {
   const [status, setStatus] = useState<SaveStatus>("saved")
 
   useEffect(() => {
-    let saved: Saved = { ...initial }
+    let saved: Saved = normalizeSnapshot(initial)
     let timer: ReturnType<typeof setTimeout> | undefined
     let inflight = false
     let disposed = false
@@ -34,13 +34,7 @@ export function useAutosave(projectId: string, initial: Saved): SaveStatus {
     const diff = (): ProjectPatch | null => {
       const s = useEditor.getState()
       if (s.projectId !== projectId || s.phase !== "ready") return null
-      const p: ProjectPatch = {}
-      if (s.words !== saved.words) p.words = s.words
-      if (s.style !== saved.style) p.style = s.style
-      if (s.aspect !== saved.aspect) p.aspect = s.aspect
-      const title = s.title.trim()
-      if (title && title !== saved.title) p.title = title
-      return Object.keys(p).length ? p : null
+      return diffSnapshot(saved, { words: s.words, style: s.style, aspect: s.aspect, title: s.title })
     }
 
     const flush = async (keepalive = false) => {

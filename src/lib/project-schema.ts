@@ -77,3 +77,39 @@ export function sanitizeStyle(raw: unknown): CaptionStyle {
   if (!(String(out.font) in FONTS)) out.font = DEFAULT_STYLE.font
   return out as CaptionStyle
 }
+
+/** The fields the editor autosaves: the server payload on load, the store snapshot while editing. */
+export type EditorSnapshot = {
+  words: Word[]
+  style: CaptionStyle | null
+  aspect: Aspect
+  title: string
+}
+
+/**
+ * Brings a snapshot to the shape the editor stores: styles merged over today's defaults.
+ * Applying it to both sides makes a raw server payload compare equal to the client state.
+ */
+export function normalizeSnapshot(snapshot: EditorSnapshot): EditorSnapshot {
+  return { ...snapshot, style: snapshot.style ? sanitizeStyle(snapshot.style) : null }
+}
+
+const sameStyle = (a: CaptionStyle | null, b: CaptionStyle | null): boolean => {
+  if (a === b) return true
+  if (!a || !b) return false
+  const keys = Object.keys(a) as (keyof CaptionStyle)[]
+  return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k])
+}
+
+/** Fields that differ between the saved baseline and the current state, or null when nothing changed. */
+export function diffSnapshot(saved: EditorSnapshot, current: EditorSnapshot): ProjectPatch | null {
+  const base = normalizeSnapshot(saved)
+  const next = normalizeSnapshot(current)
+  const patch: ProjectPatch = {}
+  if (next.words !== base.words) patch.words = next.words
+  if (next.style && !sameStyle(base.style, next.style)) patch.style = next.style
+  if (next.aspect !== base.aspect) patch.aspect = next.aspect
+  const title = next.title.trim()
+  if (title && title !== base.title) patch.title = title
+  return Object.keys(patch).length ? patch : null
+}
