@@ -7,21 +7,23 @@ import { readFileSync, writeFileSync } from "node:fs"
 import { execFileSync } from "node:child_process"
 
 const SCRIPT =
-  "Your videos deserve captions that pop. Drop in a clip. Saywhat transcribes it, word by word. " +
-  "Pick a style: Pop, Karaoke, Punch, Boxed, or Clean. Wrong word? Just fix it, like editing a doc. " +
-  "Then export an MP4 with captions burned in, or grab the SRT. " +
-  "It all runs in your browser, and nothing gets stored. " +
-  "No subscription. Pay per video, and your first three are free. Saywhat."
+  "You get one second to stop the scroll. Make it count. " +
+  "Saywhat turns any clip into bold, word-by-word captions, that grab attention, and keep people watching. " +
+  "No editing skills. No timeline. Just drop in your video, and you're ready to post in minutes. " +
+  "More watch time. More views. Caption your next video with Saywhat."
 
 const root = new URL("..", import.meta.url).pathname
 const raw = JSON.parse(readFileSync(`${root}out/whisper.json`, "utf8")).words
 const norm = (w) => w.toLowerCase().replace(/[^a-z0-9]/g, "")
 
-// Merge "say" + "what" into one timed token.
+// Merge "say" + "what" into one timed token, and hyphen pieces ("word", "-by", "-word") into one.
 const timed = []
 for (let i = 0; i < raw.length; i++) {
   const w = raw[i]
-  if (norm(w.word) === "say" && raw[i + 1] && norm(raw[i + 1].word) === "what") {
+  if (w.word.startsWith("-") && timed.length) {
+    const prev = timed[timed.length - 1]
+    timed[timed.length - 1] = { word: prev.word + w.word, start: prev.start, end: w.end }
+  } else if (norm(w.word) === "say" && raw[i + 1] && norm(raw[i + 1].word) === "what") {
     timed.push({ word: "saywhat", start: w.start, end: raw[i + 1].end })
     i++
   } else timed.push(w)

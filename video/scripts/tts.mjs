@@ -7,23 +7,22 @@ import { writeFileSync } from "node:fs"
 import { KokoroTTS } from "kokoro-js"
 
 const VOICE = "af_heart"
-const SPEED = 1.05
+const SPEED = 1.0
 const SAMPLE_RATE = 24000
 
 // Lines are spelled for pronunciation ("Say-what", "S R T"); script.md has the clean text.
 // `pause` = silence (s) appended after the line.
 const LINES = [
-  { text: "Your videos deserve captions that pop!", pause: 0.35 },
-  { text: "Drop in a clip.", pause: 0.15 },
-  { text: "Say-what transcribes it, word by word.", pause: 0.35 },
-  { text: "Pick a style: Pop, Karaoke, Punch, Boxed, or Clean.", pause: 0.35 },
-  { text: "Wrong word? Just fix it, like editing a doc.", pause: 0.35 },
-  { text: "Then export an M P 4 with captions burned in, or grab the S R T.", pause: 0.35 },
-  { text: "It all runs in your browser, and nothing gets stored.", pause: 0.35 },
-  { text: "No subscription. Pay per video, and your first three are free.", pause: 0.4 },
-  { text: "Say-what!", pause: 1.6 },
+  { text: "You get one second to stop the scroll.", pause: 0.3 },
+  { text: "Make it count.", pause: 0.45 },
+  { text: "Say-what turns any clip into bold, word-by-word captions,", pause: 0.12 },
+  { text: "that grab attention, and keep people watching.", pause: 0.45 },
+  { text: "No editing skills. No timeline.", pause: 0.2 },
+  { text: "Just drop in your video, and you're ready to post in minutes.", pause: 0.45 },
+  { text: "More watch time. More views.", pause: 0.5 },
+  { text: "Caption your next video with Say-what.", pause: 2.2 },
 ]
-const LEAD_IN = 0.25
+const LEAD_IN = 0.15
 
 const tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", { dtype: "q8", device: "cpu" })
 
