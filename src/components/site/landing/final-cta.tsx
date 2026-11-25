@@ -5,15 +5,8 @@ import { ArrowRightIcon } from "lucide-react"
 import { Reveal } from "@/components/site/motion/reveal"
 import { HeroDropzone } from "./hero-dropzone"
 
-const CHROME_TEXT = {
-  background: "linear-gradient(100deg, #f5f5f5 0%, #8a8a8a 22%, #ffffff 38%, #6b6b6b 55%, #e8e8e8 72%, #9a9a9a 100%)",
-  WebkitBackgroundClip: "text",
-  backgroundClip: "text",
-  color: "transparent",
-} as const
-
 /**
- * Closing band. Mirrors the hero: same type, same chrome accent and the same dropzone,
+ * Closing band. Mirrors the hero: same type, same yellow accent and the same dropzone,
  * so a visitor who scrolled the whole page can start right here (v0/Linear-style repeat CTA).
  */
 export function FinalCta({ freeCredits }: { freeCredits: number }) {
@@ -41,7 +34,7 @@ export function FinalCta({ freeCredits }: { freeCredits: number }) {
             style={{ fontStretch: "112%", fontVariationSettings: '"wdth" 112' }}
           >
             Your{" "}
-            <span className="hero-chrome-word pr-[0.06em] italic" style={CHROME_TEXT}>
+            <span className="text-primary pr-[0.06em] italic">
               turn.
             </span>
           </h2>

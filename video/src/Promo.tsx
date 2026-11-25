@@ -21,13 +21,77 @@ const E = WORDS.map((w) => Math.round(w.e * FPS))
 /** cut from the first creator to the second, halfway through the product scene */
 const CUT = Math.round((T.product + T.ease) / 2)
 
+/*
+ * What each creator "says" (the clips are muted, so the lines are invented). Words are spread
+ * evenly over each shot and shown three at a time, the active word lit like the Creator preset.
+ */
+const DIALOGUE = [
+  { from: T.product + 4, to: CUT - 4, text: "I posted daily for thirty days" },
+  { from: CUT + 4, to: T.ease - 10, text: "and this one habit changed everything" },
+]
+const PAGE = 3
+
+const CAPTION_WORDS = DIALOGUE.flatMap(({ from, to, text }) => {
+  const ws = text.split(" ")
+  const step = (to - from) / ws.length
+  return ws.map((w, i) => ({ w, s: Math.round(from + i * step), e: Math.round(from + (i + 1) * step), line: from, i }))
+})
+
+function SpokenCaption({ f }: { f: number }) {
+  const cur = CAPTION_WORDS.findIndex((w) => f >= w.s && f < w.e)
+  if (cur < 0) return null
+  const active = CAPTION_WORDS[cur]
+  const pageStart = cur - (active.i % PAGE)
+  const page = CAPTION_WORDS.slice(pageStart, pageStart + PAGE).filter((w) => w.line === active.line)
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 36,
+        right: 36,
+        bottom: "24%",
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        columnGap: 18,
+        rowGap: 4,
+        fontFamily: FONT.caption,
+        fontWeight: 900,
+        fontSize: 58,
+        lineHeight: 1.05,
+        textTransform: "uppercase",
+        textAlign: "center",
+      }}
+    >
+      {page.map((w) => {
+        if (f < w.s) return null
+        const sp = spr(f, w.s, 14, 200)
+        const on = w === active
+        return (
+          <span
+            key={w.s}
+            style={{
+              display: "inline-block",
+              color: on ? C.yellow : "#fff",
+              textShadow: [...outline(0.07), "0 6px 18px rgba(0,0,0,0.45)"].join(", "),
+              transform: `translateY(${(1 - sp) * 14}px) scale(${(on ? 1.06 : 1) * (0.9 + 0.1 * sp)})`,
+              filter: sp < 0.98 ? `blur(${(1 - sp) * 8}px)` : undefined,
+              opacity: sp,
+            }}
+          >
+            {w.w}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 const PHONE_W = 620
 const PHONE_H = Math.round(PHONE_W * 16 / 9) // 9:16
 const PHONE_LEFT = (1080 - PHONE_W) / 2
 const PHONE_TOP = 710 - PHONE_H / 2
 
-// line-2 caption words shown inside the phone
-const PHONE_WORDS = [16, 18, 21, 25] // bold, captions, attention, watching
 
 const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, k) => a + k)
 
@@ -141,18 +205,6 @@ function Product({ f }: { f: number }) {
 
 function Phone({ f }: { f: number }) {
   const drift = prog(f, T.product, T.ease - T.product, EASE.soft)
-  // phone caption word
-  let activeIdx = -1
-  for (let k = 0; k < PHONE_WORDS.length; k++) {
-    const wi = PHONE_WORDS[k]
-    const nextWi = k < PHONE_WORDS.length - 1 ? PHONE_WORDS[k + 1] : null
-    const start = S[wi]
-    const end = nextWi ? S[nextWi] : E[wi] + 30
-    if (f >= start && f < end) {
-      activeIdx = k
-      break
-    }
-  }
   const scrubLin = Math.min(1, Math.max(0, (f - T.product) / (T.ease - T.product)))
   return (
     <div
@@ -210,42 +262,7 @@ function Phone({ f }: { f: number }) {
           <rect width="100%" height="100%" filter="url(#grain)" />
         </svg>
 
-        {/* one big caption word */}
-        {activeIdx >= 0 && (() => {
-          const wi = PHONE_WORDS[activeIdx]
-          const sp = spr(f, S[wi], 12, 180)
-          const scale = 0.85 + 0.15 * sp
-          const blur = (1 - sp) * 12
-          return (
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: "28%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-end",
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: FONT.caption,
-                  fontWeight: 900,
-                  fontSize: 108,
-                  lineHeight: 1,
-                  color: C.yellow,
-                  textShadow: [...outline(0.06), "0 8px 24px rgba(0,0,0,0.5)"].join(", "),
-                  transform: `scale(${scale})`,
-                  filter: blur > 0.05 ? `blur(${blur}px)` : undefined,
-                  opacity: sp,
-                }}
-              >
-                {WORDS[wi].w.replace(/[.,]/g, "")}
-              </div>
-            </div>
-          )
-        })()}
+        <SpokenCaption f={f} />
 
         {/* scrubber */}
         <div

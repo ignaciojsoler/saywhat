@@ -14,17 +14,7 @@ export function HeroTitle() {
         if (w === "actually") {
           return (
             <span key={w} aria-hidden className="block">
-              <span
-                className="hero-chrome-word italic"
-                style={{
-                  background: "linear-gradient(100deg, #f5f5f5 0%, #8a8a8a 22%, #ffffff 38%, #6b6b6b 55%, #e8e8e8 72%, #9a9a9a 100%)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
-                {w}
-              </span>
+              <span className="text-primary pr-[0.06em] italic">{w}</span>
             </span>
           )
         }
