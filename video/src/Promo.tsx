@@ -1,4 +1,4 @@
-import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion"
+import { AbsoluteFill, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion"
 import { Abs, C, EASE, FONT, Headline, outline, prog, reveal, scene, spr } from "./ui"
 import { DURATION_FRAMES, FPS, WORDS, cue } from "./timing"
 
@@ -17,6 +17,9 @@ const T = {
 
 const S = WORDS.map((w) => Math.round(w.s * FPS))
 const E = WORDS.map((w) => Math.round(w.e * FPS))
+
+/** cut from the first creator to the second, halfway through the product scene */
+const CUT = Math.round((T.product + T.ease) / 2)
 
 const PHONE_W = 620
 const PHONE_H = Math.round(PHONE_W * 16 / 9) // 9:16
@@ -138,7 +141,6 @@ function Product({ f }: { f: number }) {
 
 function Phone({ f }: { f: number }) {
   const drift = prog(f, T.product, T.ease - T.product, EASE.soft)
-  const lightDrift = (Math.sin(f * 0.04) * 0.5 + 0.5) * 1
   // phone caption word
   let activeIdx = -1
   for (let k = 0; k < PHONE_WORDS.length; k++) {
@@ -177,30 +179,17 @@ function Phone({ f }: { f: number }) {
           background: "#111",
         }}
       >
-        {/* warm gradient backdrop */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(165deg, #4A3A26 0%, #2A2218 42%, #0D0C0B 100%)",
-            transform: `scale(${1 + 0.04 * drift})`,
-            transformOrigin: "50% 45%",
-          }}
-        />
-        {/* blurred circular light source drifting */}
-        <div
-          style={{
-            position: "absolute",
-            left: `${20 + 30 * lightDrift}%`,
-            top: `${10 + 20 * (1 - lightDrift)}%`,
-            width: "70%",
-            height: "55%",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(255,225,77,0.22), rgba(255,225,77,0) 70%)",
-            filter: "blur(40px)",
-            transform: `translate(${12 * drift}px, ${-8 * drift}px)`,
-          }}
-        />
+        {/* real footage: two creators talking to camera (Pexels, free license), muted */}
+        <div style={{ position: "absolute", inset: 0, transform: `scale(${1.02 + 0.04 * drift})`, transformOrigin: "50% 40%" }}>
+          <Sequence from={T.product - 2} durationInFrames={CUT - (T.product - 2)} layout="none">
+            <OffthreadVideo src={staticFile("talk-man.mp4")} muted startFrom={60} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          </Sequence>
+          <Sequence from={CUT} layout="none">
+            <OffthreadVideo src={staticFile("talk-woman.mp4")} muted startFrom={30} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          </Sequence>
+        </div>
+        {/* soft grade so captions read and both clips match */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.45) 100%)" }} />
         {/* vignette */}
         <div
           style={{

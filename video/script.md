@@ -25,3 +25,11 @@ overlays Saywhat's own live captions using `src/lib/captions/promo-transcript.ts
 > Then export an MP4 with captions burned in, or grab the SRT.
 > It all runs in your browser, and nothing gets stored.
 > No subscription. Pay per video, and your first three are free. Saywhat.
+
+## Stock footage
+
+The product scene plays two muted talking-to-camera clips inside the phone, both from
+Pexels (free to use, no attribution required):
+
+- `public/talk-man.mp4`: https://www.pexels.com/video/a-man-talking-7261920/
+- `public/talk-woman.mp4`: https://www.pexels.com/video/expressive-woman-speaking-indoors-36931662/
