@@ -2,6 +2,8 @@ import Link from "next/link"
 import { FREE_CREDITS } from "@/lib/billing/packs"
 import { MAX_SECONDS } from "@/lib/pipeline"
 import { RevealHeading } from "./reveal-heading"
+import { Reveal } from "@/components/site/motion/reveal"
+import { Stagger, StaggerItem } from "@/components/site/motion/stagger"
 
 const FAQ = [
   {
@@ -40,6 +42,7 @@ export function Faq() {
       <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
         <div className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
           <RevealHeading text="Things you'd ask *before paying.*" className="font-display text-5xl font-semibold leading-[1.02] tracking-[-0.035em] text-balance sm:text-6xl" />
+          <Reveal delay={0.1}>
           <p className="text-muted-foreground max-w-sm text-lg leading-relaxed">
             Anything else? Your first {FREE_CREDITS} videos are free, so the quickest answer might be{" "}
             <Link href="/signup" className="text-foreground underline decoration-1 underline-offset-4 hover:decoration-2">
@@ -47,10 +50,13 @@ export function Faq() {
             </Link>
             .
           </p>
+          </Reveal>
         </div>
+        <Stagger>
         <div className="border-t border-white/25">
           {FAQ.map((f, i) => (
-            <details key={f.q} className="group border-b py-5 [&_summary::-webkit-details-marker]:hidden">
+            <StaggerItem as="div" key={f.q}>
+            <details className="group border-b py-5 [&_summary::-webkit-details-marker]:hidden">
               <summary className="focus-visible:ring-ring flex cursor-pointer list-none items-baseline gap-4 rounded-sm text-left text-[17px] font-medium outline-none focus-visible:ring-2">
                 <span className="text-muted-foreground w-6 shrink-0 font-mono text-xs tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                 <span className="flex-1">{f.q}</span>
@@ -60,8 +66,10 @@ export function Faq() {
               </summary>
               <p className="text-muted-foreground mt-3 pr-8 pl-10 leading-relaxed">{f.a}</p>
             </details>
+            </StaggerItem>
           ))}
         </div>
+        </Stagger>
       </div>
     </section>
   )

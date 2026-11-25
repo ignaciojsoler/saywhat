@@ -1,4 +1,7 @@
 import { RevealHeading } from "./reveal-heading"
+import { Reveal } from "@/components/site/motion/reveal"
+import { Stagger, StaggerItem } from "@/components/site/motion/stagger"
+import { DrawLine } from "@/components/site/motion/draw-line"
 
 /** Three clips on an editor timeline. Positions are % of the 60 s ruler. */
 const STEPS = [
@@ -30,7 +33,9 @@ export function HowItWorks() {
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-12">
           <RevealHeading text="Raw clip to posted in *under a minute.*" className="font-display max-w-2xl text-5xl font-semibold leading-[1.02] tracking-[-0.035em] text-balance sm:text-6xl" />
-          <p className="text-muted-foreground max-w-xs text-pretty md:pb-2">For a short clip, roughly. No timeline to scrub. Ironic, given this one.</p>
+          <Reveal delay={0.1}>
+            <p className="text-muted-foreground max-w-xs text-pretty md:pb-2">For a short clip, roughly. No timeline to scrub. Ironic, given this one.</p>
+          </Reveal>
         </div>
 
         <div className="relative mt-14">
@@ -47,18 +52,24 @@ export function HowItWorks() {
             <span className="bg-signal absolute -top-1 -left-[4px] size-[9px] rounded-[2px]" />
           </span>
 
+          <DrawLine className="hidden h-px w-full bg-white/30 md:block" />
+          <Stagger>
           <ol className="grid gap-px overflow-hidden rounded-lg border bg-white/10 md:mt-3 md:grid-cols-[20fr_25fr_15fr] md:rounded-md">
-            {STEPS.map((s) => (
-              <li key={s.title} className="bg-card flex flex-col gap-5 p-5 sm:p-6">
+            {STEPS.map((s, i) => (
+              <StaggerItem as="li" key={s.title} className="bg-card relative flex flex-col gap-5 p-5 sm:p-6">
+                <span aria-hidden className="pointer-events-none absolute right-3 top-2 font-display text-7xl font-bold leading-none" style={{ WebkitTextStroke: "1px rgba(255,255,255,0.15)", color: "transparent" }}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="font-display text-2xl font-semibold tracking-tight">{s.title}</span>
                   <span className="text-muted-foreground font-mono text-xs tabular-nums">{s.at}</span>
                 </div>
                 <div className="flex h-24 items-center">{s.visual}</div>
                 <p className="text-muted-foreground text-[15px] leading-relaxed">{s.text}</p>
-              </li>
+              </StaggerItem>
             ))}
           </ol>
+          </Stagger>
         </div>
       </div>
     </section>

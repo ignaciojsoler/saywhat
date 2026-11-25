@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils"
 import { FREE_CREDITS, PACKS, formatPrice, perVideo } from "@/lib/billing/packs"
 import { MAX_SECONDS } from "@/lib/pipeline"
 import { RevealHeading } from "./reveal-heading"
+import { Reveal } from "@/components/site/motion/reveal"
+import { Stagger, StaggerItem } from "@/components/site/motion/stagger"
 
 type Row = { id: string; name: string; videos: number; price: string; each: string; note: string; href: string; cta: string; popular?: boolean }
 
@@ -30,10 +32,12 @@ export function Pricing() {
       <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
         <div className="flex flex-col gap-5">
           <RevealHeading text="No subscription. Buy videos, *not months.*" className="font-display text-5xl font-semibold leading-[1.02] tracking-[-0.035em] text-balance sm:text-6xl" />
+          <Reveal delay={0.1}>
           <p className="text-muted-foreground max-w-sm text-lg leading-relaxed text-pretty">
             One credit captions one video up to {MAX_SECONDS / 60} minutes. Re-styling and re-exporting it is free. Credits don&apos;t
             expire.
           </p>
+          </Reveal>
         </div>
 
         <div className="flex flex-col gap-5">
@@ -45,13 +49,14 @@ export function Pricing() {
               <span className="text-right">Per video</span>
               <span className="w-20" />
             </div>
+            <Stagger>
             <ul className="divide-y">
               {ROWS.map((r) => (
-                <li
+                <StaggerItem as="li"
                   key={r.id}
                   className={cn(
-                    "grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 sm:grid-cols-[minmax(0,1.7fr)_0.5fr_0.6fr_0.7fr_auto]",
-                    r.popular && "bg-paper-2",
+                    "grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-4 transition-transform sm:grid-cols-[minmax(0,1.7fr)_0.5fr_0.6fr_0.7fr_auto]",
+                    r.popular && "bg-paper-2 glow-border hover:-translate-y-0.5",
                   )}
                 >
                   <div className="flex min-w-0 flex-col">
@@ -76,9 +81,10 @@ export function Pricing() {
                       <ArrowRightIcon />
                     </Link>
                   </Button>
-                </li>
+                </StaggerItem>
               ))}
             </ul>
+            </Stagger>
           </div>
           <p className="text-muted-foreground font-mono text-xs leading-relaxed">
             Prices in USD, card checkout (taxes handled at checkout). In Argentina, pay in pesos with Mercado Pago. Failed

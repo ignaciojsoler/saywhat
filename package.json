@@ -28,6 +28,7 @@
     "drizzle-orm": "0.45.4",
     "geist": "^1.9.2",
     "lucide-react": "^1.79.0",
+    "motion": "12.23.12",
     "next": "16.4.6",
     "radix-ui": "^1.8.1",
     "react": "19.3.0",

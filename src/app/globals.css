@@ -120,7 +120,25 @@
  * navigation, so a `body:has(.site)` rule would leak into every other page.
  * `.screen` marks slightly raised bands inside the page.
  * ---------------------------------------------------------------------------------------- */
+.site .glow-border { position: relative; }
+.site .glow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,225,77,0.6), transparent 60%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 300ms;
+  pointer-events: none;
+}
+.site .glow-border:hover::before { opacity: 1; }
+
 .site {
+  scroll-behavior: smooth;
   --paper: #0a0a0a;
   --paper-2: #121212;
   --ink: #fafafa;
@@ -176,6 +194,53 @@
 @keyframes caret { 50% { opacity: 0; } }
 .caret { animation: caret 1s steps(1) infinite; }
 
+@keyframes proof-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.proof-marquee { animation: proof-marquee 40s linear infinite; }
+.proof-marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .proof-marquee { animation: none; }
+}
+
+/* Hero aurora drift */
+@keyframes aurora-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, 30px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.hero-aurora { animation: aurora-drift 20s ease-in-out infinite; }
+
+@keyframes shine-sweep {
+  0% { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+.shine-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: shine-sweep 4s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shine-btn::after { animation: none; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-aurora { animation: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .playhead, .caret { animation: none; }
+  .site { scroll-behavior: auto; }
+}
+
+.site ::selection {
+  background: var(--caption);
+  color: #0a0a0a;
 }

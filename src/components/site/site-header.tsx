@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "./logo"
 import { HeaderSession } from "./header-session"
+import { HeaderScroll } from "./header-scroll"
 
 const NAV = [
   { href: "/#styles", label: "Styles" },
@@ -14,7 +15,7 @@ const NAV = [
 
 export function SiteHeader() {
   return (
-    <header className="bg-background sticky top-0 z-40 border-b">
+    <HeaderScroll>
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-8 px-5 sm:px-6">
         <Logo />
         <nav aria-label="Main" className="hidden items-center gap-0.5 md:flex">
@@ -34,7 +35,7 @@ export function SiteHeader() {
           </Suspense>
         </div>
       </div>
-    </header>
+    </HeaderScroll>
   )
 }
 

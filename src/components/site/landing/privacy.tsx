@@ -1,4 +1,5 @@
 import { RevealHeading } from "./reveal-heading"
+import { Reveal } from "@/components/site/motion/reveal"
 
 /**
  * What actually leaves the device, drawn as plainly as possible:
@@ -10,11 +11,13 @@ export function Privacy() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-14 px-5 sm:px-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-end lg:gap-16">
           <RevealHeading text="Your video stays on your laptop. *Seriously.*" className="font-display text-5xl font-semibold leading-[1.02] tracking-[-0.035em] text-balance sm:text-6xl" />
+          <Reveal delay={0.1}>
           <p className="text-muted-foreground max-w-md text-lg leading-relaxed text-pretty lg:pb-2">
             Decoding, preview and the final render all happen in your browser. The only thing that leaves is a compressed audio
             track, and the speech-to-text service sends back words and timings. It doesn&apos;t keep the audio. We don&apos;t
             either.
           </p>
+          </Reveal>
         </div>
 
         <figure aria-label="Data flow diagram" className="grid items-stretch gap-3 md:grid-cols-[minmax(0,1.25fr)_minmax(0,0.6fr)_minmax(0,1fr)] md:gap-0">
