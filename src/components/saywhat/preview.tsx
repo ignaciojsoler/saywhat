@@ -9,6 +9,7 @@ import { Timeline } from "./timeline"
 import { activeLineAt } from "@/lib/captions/timing"
 import { clock } from "@/lib/captions/formats"
 import { aspectRatio } from "@/lib/export-video"
+import { syncAudio, timelineAudio } from "@/lib/audio-sync"
 import type { Aspect } from "@/lib/captions/types"
 import { useEditor } from "@/store/editor"
 import { usePlayer } from "@/store/player"
@@ -59,6 +60,28 @@ export function Preview() {
       setVideo(null)
     }
   }, [setVideo])
+
+  // files whose audio clock drifted play a corrected copy of their sound instead (see audio-sync.ts)
+  const file = useEditor((s) => s.file)
+  useEffect(() => {
+    const v = ref.current
+    if (!v || !file) return
+    let cancelled = false
+    let detach: (() => void) | undefined
+    let ctx: AudioContext | undefined
+    timelineAudio(file)
+      .then((buffer) => {
+        if (!buffer || cancelled) return
+        ctx = new AudioContext()
+        detach = syncAudio(v, buffer, ctx)
+      })
+      .catch(() => {}) // unreadable audio: keep the element's own sound
+    return () => {
+      cancelled = true
+      detach?.()
+      void ctx?.close()
+    }
+  }, [file])
 
   // while playing, publish the current time every frame
   useEffect(() => {

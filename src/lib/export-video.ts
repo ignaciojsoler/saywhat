@@ -1,4 +1,5 @@
 import { drawCaptions, fontsFor, type DrawOptions } from "./captions/canvas"
+import { syncAudio } from "./audio-sync"
 import type { Aspect, CaptionStyle, Line, Word } from "./captions/types"
 
 const ASPECTS: Record<Exclude<Aspect, "original">, number> = { "9:16": 9 / 16, "1:1": 1, "16:9": 16 / 9 }
@@ -22,6 +23,8 @@ type Options = {
   lines: Line[]
   style: CaptionStyle
   aspect: Aspect
+  /** soundtrack refit to the timeline, for files whose audio clock drifted (see audio-sync.ts) */
+  audio?: AudioBuffer | null
   onProgress: (p: number) => void
   signal: AbortSignal
 }
@@ -30,7 +33,7 @@ type Options = {
  * Render the video with burned-in captions: draw each frame to a canvas (cropped to the
  * chosen aspect) and record it with the original audio. Takes as long as the video.
  */
-export async function exportVideo({ url, words, lines, style, aspect, onProgress, signal }: Options) {
+export async function exportVideo({ url, words, lines, style, aspect, audio, onProgress, signal }: Options) {
   const video = document.createElement("video")
   video.src = url
   video.playsInline = true
@@ -55,7 +58,9 @@ export async function exportVideo({ url, words, lines, style, aspect, onProgress
   // video audio → recorder, without playing through the speakers
   const actx = new AudioContext()
   const dest = actx.createMediaStreamDestination()
-  actx.createMediaElementSource(video).connect(dest)
+  let detachAudio: (() => void) | undefined
+  if (audio) detachAudio = syncAudio(video, audio, actx, dest)
+  else actx.createMediaElementSource(video).connect(dest)
 
   const stream = new MediaStream([...canvas.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()])
   const mimeType = pickMime()
@@ -103,6 +108,7 @@ export async function exportVideo({ url, words, lines, style, aspect, onProgress
     const blob = await done
     return { blob, ext: mimeType.includes("mp4") ? "mp4" : "webm" }
   } finally {
+    detachAudio?.()
     stream.getTracks().forEach((t) => t.stop())
     void actx.close()
     video.removeAttribute("src")

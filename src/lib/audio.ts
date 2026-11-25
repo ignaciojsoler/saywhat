@@ -1,21 +1,16 @@
+import { decodeAudio, driftRatio, mediaDuration, resample } from "./audio-sync"
+
 /** Audio helpers. Everything runs in the browser; the video is never uploaded. */
 
 const SR = 16000 // what Whisper expects; also keeps the request small (~32 KB/s)
 
-/** Decode a video/audio file's soundtrack and downmix it to 16 kHz mono. */
+/**
+ * Decode a video/audio file's soundtrack and downmix it to 16 kHz mono, refit to the file's timeline
+ * when its audio clock drifted (see audio-sync.ts), so Whisper's timings line up with the picture.
+ */
 export async function extractSpeechAudio(file: File): Promise<AudioBuffer> {
-  const ctx = new AudioContext()
-  try {
-    const decoded = await ctx.decodeAudioData(await file.arrayBuffer())
-    const off = new OfflineAudioContext(1, Math.ceil(decoded.duration * SR), SR) // resamples and downmixes to mono
-    const src = off.createBufferSource()
-    src.buffer = decoded
-    src.connect(off.destination)
-    src.start()
-    return await off.startRendering()
-  } finally {
-    void ctx.close()
-  }
+  const [decoded, duration] = await Promise.all([decodeAudio(file), mediaDuration(file)])
+  return resample(decoded, driftRatio(decoded.duration, duration), SR, 1)
 }
 
 /** 16-bit PCM WAV from a mono AudioBuffer. */

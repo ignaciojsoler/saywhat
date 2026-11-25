@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
 import { toSRT, toVTT } from "@/lib/captions/formats"
+import { timelineAudio } from "@/lib/audio-sync"
 import { download, exportVideo } from "@/lib/export-video"
 import { useEditor } from "@/store/editor"
 import { usePlayer } from "@/store/player"
@@ -57,8 +58,10 @@ export function ExportMenu() {
     })
     try {
       let last = -1
+      const audio = file ? await timelineAudio(file).catch(() => null) : null
       const { blob, ext } = await exportVideo({
         url: videoUrl,
+        audio,
         words,
         lines,
         style,
