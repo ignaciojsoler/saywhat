@@ -8,7 +8,7 @@ const STEPS = [
   {
     at: "00:00",
     title: "Drop",
-    text: "Drag in a clip. It's decoded right there in your browser; only the audio goes out for transcription.",
+    text: "Drag in a clip from your phone or laptop. Any language, detected automatically.",
     visual: <DropVisual />,
   },
   {
@@ -43,7 +43,7 @@ export function HowItWorks() {
           <div aria-hidden className="relative hidden h-8 border-b md:block">
             {TICKS.map((s) => (
               <span key={s} className="absolute bottom-0 flex -translate-x-1/2 flex-col items-center gap-1" style={{ left: `${(s / 60) * 100}%` }}>
-                {s % 15 === 0 && <span className="text-muted-foreground font-mono text-xs tabular-nums">00:{String(s).padStart(2, "0")}</span>}
+                {s % 15 === 0 && <span className="text-muted-foreground font-mono text-xs tabular-nums">{String(Math.floor(s / 60)).padStart(2, "0")}:{String(s % 60).padStart(2, "0")}</span>}
                 <span className={s % 15 === 0 ? "h-2.5 w-px bg-white/40" : "h-1.5 w-px bg-white/20"} />
               </span>
             ))}

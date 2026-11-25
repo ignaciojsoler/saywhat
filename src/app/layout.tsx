@@ -13,8 +13,8 @@ import "./globals.css"
 export const metadata: Metadata = {
   // absolute base for the file-based opengraph-image / icons
   metadataBase: process.env.APP_URL ? new URL(process.env.APP_URL) : undefined,
-  title: "Saywhat — captions that pop",
-  description: "Word-by-word animated captions for short videos. Edit any word, pick a style, export MP4 or SRT. Your video never leaves your browser.",
+  title: "Saywhat — captions people actually read",
+  description: "Drop in a clip and get word-by-word animated captions in minutes. Fix any word like a doc, pick a style, post it. First videos free.",
 }
 
 export const viewport: Viewport = { themeColor: "#0a0a0a" }

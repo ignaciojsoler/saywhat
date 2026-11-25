@@ -6,7 +6,6 @@ import { Faq } from "@/components/site/landing/faq"
 import { FinalCta } from "@/components/site/landing/final-cta"
 import { Hero } from "@/components/site/landing/hero"
 import { HowItWorks } from "@/components/site/landing/how-it-works"
-import { Privacy } from "@/components/site/landing/privacy"
 import { ProofStrip } from "@/components/site/landing/proof-strip"
 import { StyleGallery } from "@/components/site/landing/style-gallery"
 import { Pricing } from "@/components/site/landing/pricing"
@@ -31,7 +30,6 @@ export default function Home() {
         <StyleGallery />
         <EditSection />
         <HowItWorks />
-        <Privacy />
         <Pricing />
         <Faq />
         <FinalCta freeCredits={FREE_CREDITS} />

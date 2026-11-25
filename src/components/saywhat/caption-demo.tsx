@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
-import { Volume2Icon, VolumeXIcon } from "lucide-react"
 import { ClipCaption, PhoneFrame, SampleVideo } from "./sample-clip"
 import { playMuted, prefersReducedMotion, useVideoTime } from "./use-video-time"
 import { PRESETS } from "@/lib/captions/presets"
@@ -25,7 +24,6 @@ export function CaptionDemo({
   frame?: (phone: ReactNode) => ReactNode
 }) {
   const [presetId, setPresetId] = useState(PRESETS[0].id)
-  const [muted, setMuted] = useState(true)
   const ref = useRef<HTMLVideoElement>(null)
   const [video, setVideo] = useState<HTMLVideoElement | null>(null)
   const { t, playing } = useVideoTime(ref)
@@ -38,17 +36,9 @@ export function CaptionDemo({
     if (prefersReducedMotion()) {
       // a still frame with a caption on screen; the viewer can press play
       v.pause()
-      v.currentTime = 7.5
+      v.currentTime = 1.6
     } else playMuted(v)
   }, [])
-
-  const toggleSound = () => {
-    const v = ref.current
-    if (!v) return
-    v.muted = !muted
-    if (v.paused) v.play().catch(() => {})
-    setMuted(!muted)
-  }
 
   const togglePlay = () => {
     const v = ref.current
@@ -70,15 +60,6 @@ export function CaptionDemo({
           <span className={cn("size-1.5 rounded-full", playing ? "bg-signal" : "bg-white/40")} />
           {timecode(t)}
         </div>
-        <button
-          type="button"
-          onClick={toggleSound}
-          aria-label={muted ? "Turn sound on" : "Mute"}
-          aria-pressed={!muted}
-          className="absolute top-2 right-2 grid size-8 place-items-center rounded-md bg-black/55 text-white/90 transition-colors outline-none hover:bg-black/75 focus-visible:ring-2 focus-visible:ring-white/70"
-        >
-          {muted ? <VolumeXIcon className="size-4" /> : <Volume2Icon className="size-4" />}
-        </button>
       </PhoneFrame>,
       )}
 

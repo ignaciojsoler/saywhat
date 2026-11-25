@@ -4,16 +4,16 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { ClipCaption, DEMO_WORDS, SampleVideo } from "@/components/saywhat/sample-clip"
 import { prefersReducedMotion } from "@/components/saywhat/use-video-time"
 import { PRESETS } from "@/lib/captions/presets"
-import { PROMO_DURATION } from "@/lib/captions/promo-transcript"
+import { DEMO_CLIP_DURATION } from "@/lib/captions/demo-transcript"
 import { timecode } from "@/lib/captions/sample-transcript"
 import { groupWords } from "@/lib/captions/timing"
 import { cn } from "@/lib/utils"
 
 const STYLE = PRESETS[0].style
 /** The word speech-to-text "misheard", and the fix typed over it. */
-const TYPO = "MP3"
-const FIX = "MP4"
-const TARGET = Math.max(0, DEMO_WORDS.findIndex((w) => w.w === FIX)) // "…export an MP4…"
+const TYPO = "dirty"
+const FIX = "thirty"
+const TARGET = Math.max(0, DEMO_WORDS.findIndex((w) => w.w === FIX)) // "…for thirty days."
 const LINES = groupWords(DEMO_WORDS, STYLE.wordsPerLine)
 const TARGET_LINE = LINES.findIndex(([a, b]) => TARGET >= a && TARGET < b)
 /** transcript rows shown: a window of lines around the edited one */
@@ -96,7 +96,7 @@ export function EditorDemo() {
       <div className="flex h-10 items-center gap-3 border-b border-white/10 px-3">
         <span className="wordmark text-[15px] leading-none">Saywhat</span>
         <span className="h-4 w-px bg-white/15" />
-        <span className="min-w-0 truncate font-mono text-xs text-white/75">saywhat-promo.mp4</span>
+        <span className="min-w-0 truncate font-mono text-xs text-white/75">day-30.mp4</span>
         <span className="ml-auto rounded-[5px] bg-[var(--caption)] px-2.5 py-1 text-xs font-semibold text-[#0a0a0a]">Export</span>
       </div>
 
@@ -141,7 +141,7 @@ export function EditorDemo() {
             <SampleVideo ref={videoRef} autoPlay={false} preload="metadata" />
             <ClipCaption t={FRAME} style={STYLE} words={words} />
           </div>
-          <span className="font-mono text-xs text-white/75 tabular-nums">{timecode(FRAME)} / {timecode(PROMO_DURATION)}</span>
+          <span className="font-mono text-xs text-white/75 tabular-nums">{timecode(FRAME)} / {timecode(DEMO_CLIP_DURATION)}</span>
         </div>
       </div>
     </div>

@@ -10,7 +10,6 @@ import { PILL } from "./pill"
 const NAV = [
   { href: "/#styles", label: "Styles" },
   { href: "/#how", label: "How it works" },
-  { href: "/#privacy", label: "Privacy" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
 ]

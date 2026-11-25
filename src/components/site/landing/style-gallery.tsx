@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { CaptionCanvas } from "@/components/saywhat/caption-text"
-import { DEMO_POSTER, DEMO_WORDS, PhoneFrame, SampleVideo, demoStyle } from "@/components/saywhat/sample-clip"
+import { DEMO_POSTER, DEMO_WORDS, PhoneFrame, SampleVideo } from "@/components/saywhat/sample-clip"
 import { playMuted, prefersReducedMotion, useVideoTime } from "@/components/saywhat/use-video-time"
 import { PRESETS } from "@/lib/captions/presets"
 import { FONTS } from "@/lib/captions/types"
@@ -70,7 +70,7 @@ export function StyleGallery() {
             <StaggerItem as="li" key={p.id} className="flex w-[46vw] max-w-[220px] shrink-0 snap-start flex-col gap-3 sm:w-[30vw] lg:w-auto lg:max-w-none">
               <PhoneFrame className="style-card glow-border w-full rounded-[1.1rem] [&>div]:rounded-[0.8rem] transition-transform duration-300 hover:-translate-y-1">
                 <div aria-hidden className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${DEMO_POSTER})` }} />
-                <CaptionCanvas words={DEMO_WORDS} t={t} style={demoStyle(p.style)} video={video} paintVideo label={`${p.name} caption style`} />
+                <CaptionCanvas words={DEMO_WORDS} t={t} style={p.style} video={video} paintVideo label={`${p.name} caption style`} />
               </PhoneFrame>
               <div className="flex flex-col gap-0.5 border-t border-white/15 pt-2">
                 <div className="flex items-baseline justify-between gap-2">

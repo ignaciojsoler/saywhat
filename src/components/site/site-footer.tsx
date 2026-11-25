@@ -6,7 +6,6 @@ const COLS = [
     title: "Product",
     links: [
       { href: "/#styles", label: "Caption styles" },
-      { href: "/#privacy", label: "Privacy" },
       { href: "/#pricing", label: "Pricing" },
       { href: "/#faq", label: "FAQ" },
     ],
@@ -29,7 +28,7 @@ export async function SiteFooter() {
         <div className="flex max-w-xs flex-col gap-3">
           <Logo />
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Word-by-word captions for short videos. Made in Argentina, rendered in your browser.
+            Word-by-word captions for short videos. Made in Argentina.
           </p>
         </div>
         {COLS.map((c) => (

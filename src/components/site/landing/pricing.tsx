@@ -72,13 +72,18 @@ export function Pricing() {
                   <Button
                     asChild
                     size="sm"
-                    variant={r.popular ? "default" : "outline"}
-                    className="w-20 max-sm:col-span-2 max-sm:mt-2 max-sm:w-full"
+                    variant="outline"
+                    className={cn(
+                      "group h-9 w-24 rounded-full max-sm:col-span-2 max-sm:mt-2 max-sm:w-full",
+                      r.popular
+                        ? "border-transparent bg-white font-semibold text-black hover:bg-white/90 hover:text-black hover:shadow-[0_0_24px_-4px_rgba(255,255,255,0.45)]"
+                        : "border-white/20 bg-transparent hover:border-white/40 hover:bg-white/[0.06]",
+                    )}
                   >
                     <Link href={r.href}>
                       {r.cta}
                       {r.id !== "free" && <span className="sm:hidden">{` ${r.videos} videos · ${r.each} each`}</span>}
-                      <ArrowRightIcon />
+                      <ArrowRightIcon className="transition-transform group-hover:translate-x-0.5" />
                     </Link>
                   </Button>
                 </StaggerItem>

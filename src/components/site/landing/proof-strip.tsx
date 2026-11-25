@@ -1,7 +1,7 @@
 /** Verifiable product facts only: no logos, no user counts, no ratings. */
 const FACTS = [
-  "Runs in your browser",
-  "Audio-only upload, not stored",
+  "Word-by-word timing",
+  "Edit any word",
   "Auto language detection",
   "MP4 · SRT · VTT",
   "9:16 · 1:1 · 16:9",
