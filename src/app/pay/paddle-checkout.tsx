@@ -48,7 +48,8 @@ function summarize(e: PaddleEvent): Summary | null {
   }
 }
 
-const FRAME = "paddle-frame"
+// not "paddle-frame": Paddle.js removes elements with that class (it names its own iframes so)
+const FRAME = "saywhat-checkout"
 
 export function PaddleCheckout({ token }: { token: string }) {
   const router = useRouter()
