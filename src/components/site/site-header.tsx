@@ -1,9 +1,11 @@
 import Link from "next/link"
 import { Suspense } from "react"
+import { ArrowRightIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "./logo"
 import { HeaderSession } from "./header-session"
 import { HeaderScroll } from "./header-scroll"
+import { PILL } from "./pill"
 
 const NAV = [
   { href: "/#styles", label: "Styles" },
@@ -29,7 +31,7 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-2">
           <Suspense fallback={<GuestActions />}>
             <HeaderSession fallback={<GuestActions />} />
           </Suspense>
@@ -42,9 +44,17 @@ export function SiteHeader() {
 export function GuestActions() {
   return (
     <>
-      <Link href="/login" className="whitespace-nowrap text-white/70 hover:text-white text-sm transition-colors">Log in</Link>
-      <Button asChild className="h-10 rounded-full bg-white px-5 font-semibold text-black">
-        <Link href="/signup" className="flex items-center gap-1.5">Start free <span aria-hidden>→</span></Link>
+      <Link
+        href="/login"
+        className="focus-visible:ring-ring rounded-full px-4 py-2 text-sm whitespace-nowrap text-white/70 transition-colors outline-none hover:bg-white/[0.07] hover:text-white focus-visible:ring-2"
+      >
+        Log in
+      </Link>
+      <Button asChild className={PILL}>
+        <Link href="/signup">
+          Start free
+          <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </Button>
     </>
   )

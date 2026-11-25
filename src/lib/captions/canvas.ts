@@ -85,6 +85,21 @@ function layout(ctx: CanvasRenderingContext2D, words: Word[], idx: number[], sty
   return { boxes, rows: rows.length, top, bottom, minX, maxX, lh }
 }
 
+/**
+ * Rows wrap between words, but a single long word (e.g. "WORD-BY-WORD" in caps) can still be
+ * wider than the frame. Shrink the font just enough for the widest word, at its emphasized
+ * size, to fit; ordinary lines keep the preset size.
+ */
+function fitSize(ctx: CanvasRenderingContext2D, words: Word[], idx: number[], style: CaptionStyle, W: number, px: number) {
+  setFont(ctx, style, px)
+  const tracking = style.tracking * px
+  const panelPad = style.background !== "none" ? px * 0.9 : 0
+  const maxW = W * MAX_W - panelPad
+  const widest = Math.max(0, ...idx.map((i) => ctx.measureText(caseText(words[i].w, style)).width - tracking))
+  const need = widest * Math.max(1, style.emphasis)
+  return need > maxW ? px * (maxW / need) : px
+}
+
 // ---------- glass ----------
 
 let pool: HTMLCanvasElement[] = []
@@ -255,9 +270,8 @@ export function drawCaptions(
 ) {
   const frame = captionFrame(words, lines, t, style)
   if (!frame || !frame.layout.length) return
-  const px = (style.size / 100) * H
-
   ctx.save()
+  const px = fitSize(ctx, words, frame.layout, style, W, (style.size / 100) * H)
   setFont(ctx, style, px)
   const L = layout(ctx, words, frame.layout, style, W, H, px)
 

@@ -102,6 +102,14 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+  /* Tailwind v4 dropped the pointer cursor on buttons; bring it back everywhere */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="radio"],
+  [role="tab"],
+  label[for] {
+    cursor: pointer;
+  }
 }
 
 /* Caption-style wordmark: the product's own output used as its logo */
