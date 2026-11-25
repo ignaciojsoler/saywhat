@@ -1,0 +1,5 @@
+# not part of the web app: the Remotion promo project and design sources
+video/
+design/
+local.db*
+.wrangler/
