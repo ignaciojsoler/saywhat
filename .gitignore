@@ -50,3 +50,8 @@ next-env.d.ts
 # promo video workspace (renders and deps)
 /video/node_modules/
 /video/out/
+
+# promo video (Remotion project in video/)
+/video/node_modules
+/video/out
+/video/.remotion
