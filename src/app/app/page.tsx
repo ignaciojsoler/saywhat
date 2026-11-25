@@ -5,6 +5,7 @@ import { PlusIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Page, PageHeader } from "@/components/shell/page-header"
 import { VideosDashboard } from "@/components/videos/videos-dashboard"
+import { getCreditHistory } from "@/lib/credit-history"
 import { listProjects } from "@/lib/projects"
 import { requireAccount } from "@/lib/session"
 
@@ -34,8 +35,8 @@ export default function VideosPage() {
 
 async function Videos() {
   const account = await requireAccount()
-  const projects = await listProjects(account.id)
-  return <VideosDashboard projects={projects} />
+  const [projects, history] = await Promise.all([listProjects(account.id), getCreditHistory(account.id)])
+  return <VideosDashboard projects={projects} hasSpent={history.hasSpent} hasPurchased={history.hasPurchased} />
 }
 
 function GridSkeleton() {

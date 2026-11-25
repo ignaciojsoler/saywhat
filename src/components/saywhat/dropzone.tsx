@@ -5,8 +5,12 @@ import { useEffect, useRef, useState } from "react"
 import { CoinsIcon, FilmIcon, PlayIcon, ShieldCheckIcon, UploadIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAccount } from "@/components/account/account-provider"
+import { PACKS } from "@/lib/billing/packs"
 import { cn } from "@/lib/utils"
 import { MAX_SECONDS } from "@/lib/pipeline"
+
+/** Smallest pack on sale, so the no-credits copy can never advertise a stale number. */
+const MIN_PACK_CREDITS = Math.min(...PACKS.map((p) => p.credits))
 
 // optional sample clip for the "Try the sample" button: drop one of these into /public
 const SAMPLE_URLS = ["/sample.mp4", "/sample.webm"]
@@ -82,7 +86,7 @@ export function Dropzone({ onFile, showTips = true }: { onFile: (f: File) => voi
           </span>
           <div className="flex flex-col gap-1.5">
             <h2 className="text-xl font-semibold">No credits left</h2>
-            <p className="text-muted-foreground max-w-sm">Packs start at 10 videos. Pay with card or Mercado Pago, credits arrive instantly.</p>
+            <p className="text-muted-foreground max-w-sm">Packs start at {MIN_PACK_CREDITS} videos. Pay with card or Mercado Pago, credits arrive instantly.</p>
           </div>
           <Button asChild size="lg" className="h-11 px-6 text-[15px]">
             <Link href="/app/credits">Buy credits</Link>

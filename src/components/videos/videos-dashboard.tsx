@@ -33,6 +33,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useAccount } from "@/components/account/account-provider"
 import { UploadFlow, queueUpload } from "@/components/saywhat/app"
 import { deleteVideo, duplicateVideo, renameVideo } from "@/app/app/videos/actions"
+import { emptyStateCopy } from "@/lib/empty-state-copy"
 import { copyLocalVideo, deleteLocalVideo, getLocalIndex } from "@/lib/local-videos"
 import type { ProjectSummary } from "@/lib/project-schema"
 import { cn } from "@/lib/utils"
@@ -130,7 +131,15 @@ function useView(): [View, (v: View) => void] {
   return [view, set]
 }
 
-export function VideosDashboard({ projects }: { projects: ProjectSummary[] }) {
+export function VideosDashboard({
+  projects,
+  hasSpent,
+  hasPurchased,
+}: {
+  projects: ProjectSummary[]
+  hasSpent: boolean
+  hasPurchased: boolean
+}) {
   const router = useRouter()
   const { account } = useAccount()
   const [query, setQuery] = useState("")
@@ -154,7 +163,7 @@ export function VideosDashboard({ projects }: { projects: ProjectSummary[] }) {
     return all.filter((p) => !q || p.title.toLowerCase().includes(q) || p.fileName.toLowerCase().includes(q)).sort(SORTS[sort].fn)
   }, [all, query, sort])
 
-  if (all.length === 0) return <EmptyState credits={account.credits} />
+  if (all.length === 0) return <EmptyState credits={account.credits} hasSpent={hasSpent} hasPurchased={hasPurchased} />
 
   const duplicate = (p: ProjectSummary) =>
     startTransition(async () => {
@@ -258,18 +267,15 @@ export function VideosDashboard({ projects }: { projects: ProjectSummary[] }) {
   )
 }
 
-function EmptyState({ credits }: { credits: number }) {
+function EmptyState({ credits, hasSpent, hasPurchased }: { credits: number; hasSpent: boolean; hasPurchased: boolean }) {
+  const { title, body } = emptyStateCopy({ credits, hasSpent, hasPurchased })
   return (
     <section className="flex flex-col gap-6" aria-labelledby="empty-title">
       <div className="flex flex-col gap-1.5">
         <h2 id="empty-title" className="text-xl font-semibold tracking-tight">
-          Caption your first video
+          {title}
         </h2>
-        <p className="text-muted-foreground">
-          {credits > 0
-            ? `You have ${credits} ${credits === 1 ? "video" : "videos"} to caption${credits <= 3 ? " for free" : ""}. Each one uses 1 credit, and your captioned videos show up here.`
-            : "You're out of credits. Grab a pack to keep going."}
-        </p>
+        <p className="text-muted-foreground">{body}</p>
       </div>
       <UploadFlow />
     </section>
