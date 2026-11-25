@@ -11,6 +11,8 @@ import "@fontsource/inter/700.css"
 import "./globals.css"
 
 export const metadata: Metadata = {
+  // absolute base for the file-based opengraph-image / icons
+  metadataBase: process.env.APP_URL ? new URL(process.env.APP_URL) : undefined,
   title: "Saywhat — captions that pop",
   description: "Word-by-word animated captions for short videos. Edit any word, pick a style, export MP4 or SRT. Your video never leaves your browser.",
 }
