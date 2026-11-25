@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import { AbsoluteFill, Img, OffthreadVideo, Sequence, staticFile, useCurrentFrame } from "remotion"
 import { Abs, C, EASE, FONT, Headline, outline, prog, reveal, scene, spr } from "./ui"
 import { DURATION_FRAMES, FPS, WORDS, cue } from "./timing"
@@ -22,65 +23,53 @@ const E = WORDS.map((w) => Math.round(w.e * FPS))
 const CUT = Math.round((T.product + T.ease) / 2)
 
 /*
- * What each creator "says" (the clips are muted, so the lines are invented). Words are spread
- * evenly over each shot and shown three at a time, the active word lit like the Creator preset.
+ * What each creator "says" (the clips are muted, so the lines are invented), captioned in the
+ * Editorial preset: the whole sentence sits on screen dimmed and each word lights up as it's said.
  */
 const DIALOGUE = [
   { from: T.product + 4, to: CUT - 4, text: "I posted daily for thirty days" },
-  { from: CUT + 4, to: T.ease - 10, text: "and this one habit changed everything" },
+  { from: CUT + 4, to: T.ease - 10, text: "and this one habit changed everything." },
 ]
-const PAGE = 3
 
-const CAPTION_WORDS = DIALOGUE.flatMap(({ from, to, text }) => {
+const LINES = DIALOGUE.map(({ from, to, text }) => {
   const ws = text.split(" ")
   const step = (to - from) / ws.length
-  return ws.map((w, i) => ({ w, s: Math.round(from + i * step), e: Math.round(from + (i + 1) * step), line: from, i }))
+  return { from, to, words: ws.map((w, i) => ({ w, s: Math.round(from + i * step) })) }
 })
 
 function SpokenCaption({ f }: { f: number }) {
-  const cur = CAPTION_WORDS.findIndex((w) => f >= w.s && f < w.e)
-  if (cur < 0) return null
-  const active = CAPTION_WORDS[cur]
-  const pageStart = cur - (active.i % PAGE)
-  const page = CAPTION_WORDS.slice(pageStart, pageStart + PAGE).filter((w) => w.line === active.line)
+  const line = LINES.find((l) => f >= l.from && f < l.to + 6)
+  if (!line) return null
+  // the line blurs in as one piece, like the preset's "blur" entrance
+  const enter = spr(f, line.from, 20, 160)
   return (
     <div
       style={{
         position: "absolute",
-        left: 36,
-        right: 36,
-        bottom: "24%",
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        columnGap: 18,
-        rowGap: 4,
-        fontFamily: FONT.caption,
-        fontWeight: 900,
-        fontSize: 58,
-        lineHeight: 1.05,
-        textTransform: "uppercase",
+        left: 56,
+        right: 56,
+        bottom: "18%",
+        textWrap: "balance",
         textAlign: "center",
+        fontFamily: FONT.display,
+        fontWeight: 600,
+        fontSize: 50,
+        lineHeight: 1.15,
+        letterSpacing: "-0.025em",
+        color: "#fff",
+        textShadow: "0 2px 14px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.5)",
+        opacity: enter,
+        filter: enter < 0.98 ? `blur(${(1 - enter) * 10}px)` : undefined,
+        transform: `translateY(${(1 - enter) * 10}px)`,
       }}
     >
-      {page.map((w) => {
-        if (f < w.s) return null
-        const sp = spr(f, w.s, 14, 200)
-        const on = w === active
+      {line.words.map((w, i) => {
+        const lit = prog(f, w.s, 5)
         return (
-          <span
-            key={w.s}
-            style={{
-              display: "inline-block",
-              color: on ? C.yellow : "#fff",
-              textShadow: [...outline(0.07), "0 6px 18px rgba(0,0,0,0.45)"].join(", "),
-              transform: `translateY(${(1 - sp) * 14}px) scale(${(on ? 1.06 : 1) * (0.9 + 0.1 * sp)})`,
-              filter: sp < 0.98 ? `blur(${(1 - sp) * 8}px)` : undefined,
-              opacity: sp,
-            }}
-          >
-            {w.w}
-          </span>
+          <Fragment key={i}>
+            <span style={{ opacity: 0.38 + 0.62 * lit }}>{w.w}</span>
+            {i < line.words.length - 1 ? " " : null}
+          </Fragment>
         )
       })}
     </div>
