@@ -13,7 +13,7 @@ export function HeaderScroll({ children }: { children: React.ReactNode }) {
   return (
     <header
       className={
-        "sticky top-0 z-40 transition-all duration-200 " +
+        "sticky top-0 z-40 animate-in fade-in transition-[background-color,border-color,backdrop-filter] duration-500 [animation-duration:900ms] " +
         (scrolled
           ? "border-b border-white/[0.08] bg-[#0a0a0a]/70 backdrop-blur-md"
           : "border-b border-transparent bg-transparent")

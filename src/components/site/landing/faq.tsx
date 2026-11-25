@@ -60,7 +60,7 @@ export function Faq() {
               <summary className="focus-visible:ring-ring flex cursor-pointer list-none items-baseline gap-4 rounded-sm text-left text-[17px] font-medium outline-none focus-visible:ring-2">
                 <span className="text-muted-foreground w-6 shrink-0 font-mono text-xs tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                 <span className="flex-1">{f.q}</span>
-                <span aria-hidden className="text-muted-foreground font-mono text-lg leading-none transition-transform group-open:rotate-45">
+                <span aria-hidden className="text-muted-foreground font-mono text-lg leading-none transition-transform duration-300 group-open:rotate-45">
                   +
                 </span>
               </summary>

@@ -146,8 +146,19 @@
 }
 .site .glow-border:hover::before { opacity: 1; }
 
-.site {
+/* smooth in-page anchors on the landing, landing below the sticky header */
+html:has(.site) {
   scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.site) { scroll-behavior: auto; }
+}
+
+.site {
+  /* every Tailwind transition on the site shares the motion system's soft ease-out */
+  --default-transition-duration: 220ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   --paper: #0a0a0a;
   --paper-2: #121212;
   --ink: #fafafa;
@@ -246,7 +257,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .playhead, .caret { animation: none; }
-  .site { scroll-behavior: auto; }
 }
 
 .site ::selection {

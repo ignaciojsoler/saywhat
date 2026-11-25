@@ -50,15 +50,13 @@ export function Hero() {
 
       <div className="mx-auto grid w-full max-w-6xl items-center gap-14 px-5 pt-16 pb-20 sm:px-6 lg:min-h-[min(calc(100svh-64px),880px)] lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:py-20">
         <div className="flex min-w-0 flex-col gap-9">
-          <Reveal>
+          <Reveal onLoad delay={0.05}>
             <p className="font-mono text-[0.7rem] tracking-[0.28em] text-white/55 uppercase">Word-by-word captions for vertical video</p>
           </Reveal>
 
           <div className="flex flex-col gap-7">
-            <Reveal delay={0.08}>
-              <HeroTitle />
-            </Reveal>
-            <Reveal delay={0.16}>
+            <HeroTitle delay={0.15} />
+            <Reveal onLoad delay={0.55}>
               <p className="max-w-[38ch] text-lg leading-relaxed text-pretty text-white/70">
                 Drop in a clip. Saywhat transcribes it word by word and animates each line the way you like. Fix a word, pick a
                 style, post it. That&apos;s the whole job.
@@ -66,7 +64,7 @@ export function Hero() {
             </Reveal>
           </div>
 
-          <Reveal delay={0.24} className="flex max-w-xl flex-col gap-5">
+          <Reveal onLoad delay={0.68} className="flex max-w-xl flex-col gap-5">
             <HeroDropzone />
             <div className="flex flex-wrap items-center gap-x-7 gap-y-3 pl-1 text-sm">
               <Link href="#how" className="group inline-flex items-center gap-2.5 text-white/80 transition-colors hover:text-white">

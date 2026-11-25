@@ -1,24 +1,19 @@
 "use client"
 
 import { motion, useReducedMotion } from "motion/react"
-import { useEffect, useState } from "react"
+import { DURATION, EASE, VIEWPORT } from "./tokens"
 
-export function DrawLine({ className }: { className?: string }) {
+/** A rule that draws itself from the left once it scrolls into view. */
+export function DrawLine({ className, delay = 0.15 }: { className?: string; delay?: number }) {
   const reduce = useReducedMotion()
-  const [fallback, setFallback] = useState(false)
-  useEffect(() => {
-    const t = setTimeout(() => setFallback(true), 1500)
-    return () => clearTimeout(t)
-  }, [])
-  if (reduce) return <div className={className} style={{ transform: "scaleX(1)", transformOrigin: "left" }} />
+  if (reduce) return <div className={className} />
   return (
     <motion.div
       className={className}
       initial={{ scaleX: 0 }}
       whileInView={{ scaleX: 1 }}
-      animate={fallback ? { scaleX: 1 } : undefined}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      viewport={VIEWPORT}
+      transition={{ duration: DURATION.slow, ease: EASE, delay }}
       style={{ transformOrigin: "left" }}
     />
   )

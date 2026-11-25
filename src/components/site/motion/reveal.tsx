@@ -1,55 +1,35 @@
 "use client"
 
-import { motion, useReducedMotion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useReducedMotion } from "motion/react"
 import type { ElementType, ReactNode } from "react"
+import { DURATION, EASE, MOTION, RISE, VIEWPORT, type MotionTag } from "./tokens"
 
-const EASE = [0.16, 1, 0.3, 1] as const
-
-const MOTION = {
-  div: motion.div,
-  section: motion.section,
-  ul: motion.ul,
-  li: motion.li,
-  p: motion.p,
-  span: motion.span,
-  h1: motion.h1,
-  h2: motion.h2,
-  h3: motion.h3,
-  article: motion.article,
-} as const
-
+/**
+ * Fades and lifts its content in once it scrolls into view.
+ * `onLoad` plays it on mount instead (above-the-fold content, e.g. the hero).
+ */
 export function Reveal({
   children,
   delay = 0,
   as = "div",
   className,
+  onLoad = false,
 }: {
   children: ReactNode
   delay?: number
-  as?: keyof typeof MOTION
+  as?: MotionTag
   className?: string
+  onLoad?: boolean
 }) {
   const reduce = useReducedMotion()
-  const [fallback, setFallback] = useState(false)
-  useEffect(() => {
-    const t = setTimeout(() => setFallback(true), 1500)
-    return () => clearTimeout(t)
-  }, [])
   if (reduce) {
-    const Static = (as ?? "div") as ElementType
+    const Static = as as ElementType
     return <Static className={className}>{children}</Static>
   }
   const Comp = MOTION[as] as ElementType
+  const trigger = onLoad ? { animate: "show" } : { whileInView: "show", viewport: VIEWPORT }
   return (
-    <Comp
-      className={className}
-      initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      animate={fallback ? { opacity: 1, y: 0, filter: "blur(0px)" } : undefined}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.7, ease: EASE, delay }}
-    >
+    <Comp className={className} variants={RISE} initial="hidden" {...trigger} transition={{ duration: DURATION.base, ease: EASE, delay }}>
       {children}
     </Comp>
   )

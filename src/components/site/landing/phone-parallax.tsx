@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
+import { EASE } from "@/components/site/motion/tokens"
 import type { ReactNode } from "react"
 
 export function PhoneParallax({ children }: { children: ReactNode }) {
@@ -25,9 +26,9 @@ export function PhoneParallax({ children }: { children: ReactNode }) {
     <motion.div
       ref={ref}
       style={{ y, rotate }}
-      initial={{ opacity: 0, scale: 0.94, y: 40, filter: "blur(10px)" }}
-      animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 1.4, ease: EASE, delay: 0.3 }}
       className="relative"
     >
       {children}
