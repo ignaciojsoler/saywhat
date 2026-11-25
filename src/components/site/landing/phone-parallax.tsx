@@ -16,7 +16,7 @@ export function PhoneParallax({ children }: { children: ReactNode }) {
     return () => mql.removeEventListener("change", update)
   }, [])
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
-  const y = useTransform(scrollYProgress, [0, 1], [0, -60])
+  const y = useTransform(scrollYProgress, [0, 1], [0, -40])
   const rotate = useTransform(scrollYProgress, [0, 1], [0, 2])
   if (reduce || isSmall) {
     return <div ref={ref} className="relative">{children}</div>
@@ -31,7 +31,7 @@ export function PhoneParallax({ children }: { children: ReactNode }) {
       className="relative"
     >
       {children}
-      <span aria-hidden className="pointer-events-none absolute -inset-6 -z-10 rounded-full blur-3xl" style={{ background: "radial-gradient(circle, rgba(255,225,77,0.18) 0%, transparent 65%)" }} />
+      <span aria-hidden className="pointer-events-none absolute -inset-6 -z-10 rounded-full blur-3xl" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 65%)" }} />
     </motion.div>
   )
 }

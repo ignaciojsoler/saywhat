@@ -62,6 +62,16 @@ function tx<T>(stores: string[], mode: IDBTransactionMode, run: (t: IDBTransacti
 
 const isQuota = (e: unknown) => e instanceof DOMException && (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED")
 
+/** Reserved id for a video picked on the landing before the visitor has an account. */
+export const PENDING_UPLOAD_ID = "__pending__"
+/** Pending uploads expire after this long. */
+export const PENDING_UPLOAD_TTL_MS = 60 * 60 * 1000
+
+/** Pure expiry check for a pending upload record. */
+export function isPendingUploadExpired(savedAt: number, now: number = Date.now()): boolean {
+  return now - savedAt > PENDING_UPLOAD_TTL_MS
+}
+
 /** Keeps the original file on this device. Never throws: returns why it couldn't when it couldn't. */
 export async function saveLocalVideo(userId: string, id: string, file: File): Promise<SaveResult> {
   const rec: FileRecord = { id, userId, blob: file, name: file.name, type: file.type, size: file.size, lastModified: file.lastModified, savedAt: Date.now() }
@@ -83,6 +93,27 @@ export async function getLocalVideo(id: string): Promise<File | null> {
   }
 }
 
+/** Saves a file picked on the landing under the reserved pending id, for later pickup after signup. */
+export async function savePendingUpload(file: File): Promise<SaveResult> {
+  return saveLocalVideo("", PENDING_UPLOAD_ID, file)
+}
+
+/** Reads and removes the pending upload. Returns null when missing or older than 1 hour. */
+export async function takePendingUpload(): Promise<File | null> {
+  try {
+    const rec = (await tx<FileRecord>([FILES], "readonly", (t) => t.objectStore(FILES).get(PENDING_UPLOAD_ID))) ?? null
+    if (!rec) return null
+    if (isPendingUploadExpired(rec.savedAt)) {
+      await deleteLocalVideo(PENDING_UPLOAD_ID)
+      return null
+    }
+    await deleteLocalVideo(PENDING_UPLOAD_ID)
+    return new File([rec.blob], rec.name, { type: rec.type, lastModified: rec.lastModified })
+  } catch {
+    return null
+  }
+}
+
 export async function saveThumbnail(userId: string, id: string, blob: Blob): Promise<void> {
   try {
     await tx([THUMBS], "readwrite", (t) => t.objectStore(THUMBS).put({ id, userId, blob } satisfies ThumbRecord))
@@ -98,7 +129,10 @@ export async function getLocalIndex(): Promise<{ files: Set<string>; thumbs: Map
       tx<IDBValidKey[]>([FILES], "readonly", (t) => t.objectStore(FILES).getAllKeys()),
       tx<ThumbRecord[]>([THUMBS], "readonly", (t) => t.objectStore(THUMBS).getAll()),
     ])
-    return { files: new Set((keys ?? []).map(String)), thumbs: new Map((thumbs ?? []).map((r) => [r.id, r.blob])) }
+    return {
+      files: new Set((keys ?? []).map(String).filter((k) => k !== PENDING_UPLOAD_ID)),
+      thumbs: new Map((thumbs ?? []).filter((r) => r.id !== PENDING_UPLOAD_ID).map((r) => [r.id, r.blob])),
+    }
   } catch {
     return { files: new Set(), thumbs: new Map() }
   }
@@ -125,7 +159,8 @@ export async function copyLocalVideo(userId: string, from: string, to: string): 
 export async function localUsage(userId: string): Promise<{ count: number; bytes: number }> {
   try {
     const recs = (await tx<FileRecord[]>([FILES], "readonly", (t) => t.objectStore(FILES).index("userId").getAll(userId))) ?? []
-    return { count: recs.length, bytes: recs.reduce((n, r) => n + (r.size || 0), 0) }
+    const filtered = recs.filter((r) => r.id !== PENDING_UPLOAD_ID)
+    return { count: filtered.length, bytes: filtered.reduce((n, r) => n + (r.size || 0), 0) }
   } catch {
     return { count: 0, bytes: 0 }
   }
@@ -139,7 +174,7 @@ export async function clearLocalVideos(userId: string): Promise<void> {
       req.onsuccess = () => {
         const c = req.result
         if (!c) return
-        t.objectStore(store).delete(c.primaryKey)
+        if (String(c.primaryKey) !== PENDING_UPLOAD_ID) t.objectStore(store).delete(c.primaryKey)
         c.continue()
       }
     })

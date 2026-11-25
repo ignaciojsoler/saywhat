@@ -13,7 +13,7 @@ import { authClient } from "@/lib/auth-client"
 type Mode = "login" | "signup"
 
 /** Only same-origin paths, never protocol-relative URLs. */
-function safeNext(v: string | null) {
+export function safeNext(v: string | null) {
   return v && v.startsWith("/") && !v.startsWith("//") ? v : "/app"
 }
 

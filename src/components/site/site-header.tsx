@@ -42,11 +42,9 @@ export function SiteHeader() {
 export function GuestActions() {
   return (
     <>
-      <Button asChild variant="ghost" className="h-9 px-3 text-sm">
-        <Link href="/login">Log in</Link>
-      </Button>
-      <Button asChild className="h-9 px-4 text-sm">
-        <Link href="/signup">Start free</Link>
+      <Link href="/login" className="whitespace-nowrap text-white/70 hover:text-white text-sm transition-colors">Log in</Link>
+      <Button asChild className="h-10 rounded-full bg-white px-5 font-semibold text-black">
+        <Link href="/signup" className="flex items-center gap-1.5">Start free <span aria-hidden>→</span></Link>
       </Button>
     </>
   )

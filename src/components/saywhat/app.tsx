@@ -1,12 +1,12 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Dropzone } from "./dropzone"
 import { Processing } from "./processing"
 import { useAccount } from "@/components/account/account-provider"
-import { makeThumbnail, saveLocalVideo, saveThumbnail } from "@/lib/local-videos"
+import { makeThumbnail, saveLocalVideo, saveThumbnail, takePendingUpload } from "@/lib/local-videos"
 import { OutOfCreditsError, transcribeFile } from "@/lib/pipeline"
 import { titleFromFileName } from "@/lib/project-schema"
 import { useEditor } from "@/store/editor"
@@ -23,12 +23,15 @@ export const queueUpload = (f: File) => {
  */
 export function UploadFlow({ showTips = true }: { showTips?: boolean }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { account, setCredits } = useAccount()
   const phase = useEditor((s) => s.phase)
   const projectId = useEditor((s) => s.projectId)
   const fileName = useEditor((s) => s.file?.name ?? "")
   const videoUrl = useEditor((s) => s.videoUrl)
   const visible = useRef(false)
+  const pendingStarted = useRef(false)
+  const [pendingNotFound, setPendingNotFound] = useState(false)
 
   useEffect(() => {
     visible.current = true
@@ -99,13 +102,57 @@ export function UploadFlow({ showTips = true }: { showTips?: boolean }) {
     [account.credits, account.id, outOfCredits, router, setCredits],
   )
 
+  const pending = searchParams.get("pending") === "1"
+
+  useEffect(() => {
+    if (!pending) return
+    if (pendingStarted.current) return
+    pendingStarted.current = true
+    let cancelled = false
+    void (async () => {
+      if (account.credits <= 0) {
+        if (!cancelled) {
+          outOfCredits()
+          router.replace("/app/new")
+        }
+        return
+      }
+      let f = pendingFile
+      pendingFile = null
+      if (f) {
+        // clean up the IndexedDB copy; the in-memory file is the one we use
+        await takePendingUpload().catch(() => null)
+      } else {
+        f = await takePendingUpload()
+      }
+      if (cancelled) return
+      if (f) {
+        void start(f)
+        router.replace("/app/new")
+      } else {
+        setPendingNotFound(true)
+        router.replace("/app/new")
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [pending, start, router, account.credits, outOfCredits])
+
   useEffect(() => {
     const f = pendingFile
     pendingFile = null
-    if (f) void start(f)
-  }, [start])
+    if (f && !pending) void start(f)
+  }, [start, pending])
 
   const busy = phase === "extracting" || phase === "transcribing" || (phase === "ready" && projectId)
   if (busy) return <Processing phase={phase} fileName={fileName} videoUrl={videoUrl} />
-  return <Dropzone onFile={start} showTips={showTips} />
+  return (
+    <>
+      {pendingNotFound && (
+        <p className="text-sm text-muted-foreground mb-3">We couldn&apos;t find the clip you picked. Please select it again.</p>
+      )}
+      <Dropzone onFile={start} showTips={showTips} />
+    </>
+  )
 }

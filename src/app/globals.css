@@ -50,6 +50,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: "Inter Tight Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-hero: "Archivo Variable", "Inter Tight", sans-serif;
   --font-caption: var(--font-montserrat);
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);
@@ -243,4 +244,28 @@
 .site ::selection {
   background: var(--caption);
   color: #0a0a0a;
+}
+
+.hero-chrome-word {
+  background-size: 200% 100%;
+  animation: chrome-shine 8s ease-in-out infinite alternate;
+  display: inline-block;
+}
+@keyframes chrome-shine {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-chrome-word { animation: none; }
+}
+
+/* Hero device: polished metal bezel with a top-edge gloss and a deep floor shadow. */
+.phone-chrome {
+  background: linear-gradient(145deg, #f2f2f2 0%, #8c8c8c 18%, #2a2a2a 42%, #111 58%, #6f6f6f 82%, #d9d9d9 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 60px 120px -30px rgba(0, 0, 0, 0.95),
+    0 0 80px -20px rgba(255, 255, 255, 0.12);
 }

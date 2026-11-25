@@ -17,11 +17,16 @@ export const DEMO_WORDS = PROMO_WORDS
  */
 export const demoStyle = (style: CaptionStyle): CaptionStyle => ({ ...style, position: 10 })
 
-/** Plain black phone: a bezel and a 9:16 screen sized in container units for the captions. */
-export function PhoneFrame({ className, children }: { className?: string; children: React.ReactNode }) {
+/**
+ * Phone with a 9:16 screen sized in container units for the captions. `chrome` gives it a
+ * polished metal bezel (the hero device); the default is a plain black bezel (gallery cards).
+ */
+export function PhoneFrame({ className, chrome = false, children }: { className?: string; chrome?: boolean; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-[1.6rem] bg-black p-[3.5%] ring-1 ring-white/10", className)}>
-      <div className="relative aspect-[9/16] overflow-hidden rounded-[1.25rem] bg-[#0b0b0a] [container-type:size]">{children}</div>
+    <div
+      className={cn("rounded-[1.6rem] p-[3.5%]", chrome ? "phone-chrome" : "bg-black ring-1 ring-white/10", className)}
+    >
+      <div className="relative aspect-[9/16] overflow-hidden rounded-[1.25rem] bg-[#0b0b0a] [container-type:inline-size]">{children}</div>
     </div>
   )
 }

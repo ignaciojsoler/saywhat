@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { UploadFlow } from "@/components/saywhat/app"
 import { Page, PageHeader } from "@/components/shell/page-header"
 
@@ -12,7 +13,9 @@ export default function NewVideoPage() {
         title="New video"
         description="Upload a clip and get word-by-word captions in seconds."
       />
-      <UploadFlow />
+      <Suspense>
+        <UploadFlow />
+      </Suspense>
     </Page>
   )
 }

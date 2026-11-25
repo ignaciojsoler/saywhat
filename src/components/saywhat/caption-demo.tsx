@@ -1,16 +1,29 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import type { ReactNode } from "react"
 import { Volume2Icon, VolumeXIcon } from "lucide-react"
 import { ClipCaption, PhoneFrame, SampleVideo } from "./sample-clip"
 import { playMuted, prefersReducedMotion, useVideoTime } from "./use-video-time"
 import { PRESETS } from "@/lib/captions/presets"
 import { timecode } from "@/lib/captions/sample-transcript"
-import type { Preset } from "@/lib/captions/presets"
 import { cn } from "@/lib/utils"
 
-/** Live preview of the product's output: real footage with captions synced to the video, in any preset. */
-export function CaptionDemo({ className }: { className?: string }) {
+/**
+ * Live preview of the product's output: real footage with captions synced to the video, in any preset.
+ * `frame` wraps only the phone (e.g. a 3D tilt) so the preset switcher below stays flat.
+ */
+export function CaptionDemo({
+  className,
+  phoneClassName,
+  chrome = false,
+  frame = (phone) => phone,
+}: {
+  className?: string
+  phoneClassName?: string
+  chrome?: boolean
+  frame?: (phone: ReactNode) => ReactNode
+}) {
   const [presetId, setPresetId] = useState(PRESETS[0].id)
   const [muted, setMuted] = useState(true)
   const ref = useRef<HTMLVideoElement>(null)
@@ -46,7 +59,8 @@ export function CaptionDemo({ className }: { className?: string }) {
 
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
-      <PhoneFrame className="w-[min(290px,72vw)]">
+      {frame(
+      <PhoneFrame chrome={chrome} className={cn("w-[min(290px,72vw)]", phoneClassName)}>
         <SampleVideo ref={ref} autoPlay={false} />
         <button type="button" onClick={togglePlay} aria-label={playing ? "Pause demo" : "Play demo"} className="absolute inset-0 cursor-pointer" />
         <ClipCaption t={t} style={preset.style} video={video} />
@@ -65,10 +79,16 @@ export function CaptionDemo({ className }: { className?: string }) {
         >
           {muted ? <VolumeXIcon className="size-4" /> : <Volume2Icon className="size-4" />}
         </button>
-      </PhoneFrame>
+      </PhoneFrame>,
+      )}
 
-      {/* preset switcher */}
-      <div role="radiogroup" aria-label="Caption style" className="flex flex-wrap justify-center gap-1">
+      {/* preset switcher: one quiet row; scrolls sideways (with faded edges) when it doesn't fit */}
+      <div
+        role="radiogroup"
+        aria-label="Caption style"
+        className="w-full max-w-[520px] overflow-x-auto [scrollbar-width:none] [mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)] [&::-webkit-scrollbar]:hidden"
+      >
+        <div className="mx-auto flex w-max gap-2 px-6">
         {PRESETS.map((p) => {
           const active = p.id === presetId
           return (
@@ -79,20 +99,18 @@ export function CaptionDemo({ className }: { className?: string }) {
               aria-checked={active}
               onClick={() => setPresetId(p.id)}
               className={cn(
-                "focus-visible:ring-ring rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors outline-none focus-visible:ring-2",
-                active ? "border-transparent text-[#0a0a0a]" : "text-muted-foreground hover:text-foreground border-white/10 hover:border-white/25",
+                "h-9 shrink-0 rounded-full border px-4 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                active ? "border-white/30 bg-white/10 text-white" : "border-white/12 text-white/70 hover:border-white/25",
               )}
-              style={active ? { background: chipColor(p) } : undefined}
               title={p.tagline}
             >
               {p.name}
             </button>
           )
         })}
+        </div>
       </div>
     </div>
   )
 }
 
-/** Chip color for the active preset: its accent, or off-white when the accent is white. */
-const chipColor = (p: Preset) => (/^#f{3,8}$/i.test(p.style.activeColor) || p.style.highlight === "none" ? "#fafafa" : p.style.activeColor)

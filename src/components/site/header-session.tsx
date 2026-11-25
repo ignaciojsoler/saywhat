@@ -8,10 +8,10 @@ export async function HeaderSession({ fallback }: { fallback: React.ReactNode })
   const account = await getAccount().catch(() => null)
   if (!account) return fallback
   return (
-    <Button asChild className="h-9 px-4 text-sm">
-      <Link href="/app">
+    <Button asChild className="h-10 rounded-full bg-white px-5 font-semibold text-black">
+      <Link href="/app" className="flex items-center gap-1.5">
         Open app
-        <ArrowRightIcon />
+        <ArrowRightIcon className="size-4" />
       </Link>
     </Button>
   )
