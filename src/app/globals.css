@@ -1,0 +1,181 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./mira.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Saywhat: neutral near-black studio; the only accent is caption yellow */
+:root {
+  --radius: 0.5rem;
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #141414;
+  --card-foreground: #fafafa;
+  --popover: #1a1a1a;
+  --popover-foreground: #fafafa;
+  --primary: #ffe14d;
+  --primary-foreground: #0a0a0a;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #fafafa;
+  --muted: #1f1f1f;
+  --muted-foreground: #a3a3a3;
+  --accent: #1f1f1f;
+  --accent-foreground: #fafafa;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgb(255 255 255 / 9%);
+  --input: rgb(255 255 255 / 14%);
+  --ring: rgb(255 225 77 / 60%);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: #141414;
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.9 0.17 98);
+  --sidebar-primary-foreground: oklch(0.2 0.02 98);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  /* caption typefaces (self-hosted via @fontsource in layout.tsx) */
+  --font-montserrat: "Montserrat", sans-serif;
+  --font-bebas: "Bebas Neue", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-inter: "Inter", sans-serif;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: "Inter Tight Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-caption: var(--font-montserrat);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-caption: #ffe14d;
+  --color-signal: var(--signal);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Caption-style wordmark: the product's own output used as its logo */
+.wordmark {
+  font-family: var(--font-montserrat);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--primary);
+  -webkit-text-stroke: 0.14em #000;
+  paint-order: stroke fill;
+  text-shadow: 0 0.06em 0.18em rgb(0 0 0 / 0.45);
+}
+
+/* ------------------------------------------------------------------------------------------
+ * Marketing site: dark premium. Scoped to `.site` so /app and the auth pages keep their own
+ * theme. Never style <body> from here: Next keeps visited pages mounted (hidden) for back/forward
+ * navigation, so a `body:has(.site)` rule would leak into every other page.
+ * `.screen` marks slightly raised bands inside the page.
+ * ---------------------------------------------------------------------------------------- */
+.site {
+  --paper: #0a0a0a;
+  --paper-2: #121212;
+  --ink: #fafafa;
+  --ink-2: #161616;
+  --caption: #ffe14d;
+  --signal: #ff6b4a;
+
+  --radius: 0.625rem;
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #141414;
+  --card-foreground: #fafafa;
+  --popover: #161616;
+  --popover-foreground: #fafafa;
+  --primary: var(--caption);
+  --primary-foreground: #0a0a0a;
+  --secondary: #1c1c1c;
+  --secondary-foreground: #fafafa;
+  --muted: #1c1c1c;
+  /* 9.6:1 on #0a0a0a, 8.7:1 on #141414 */
+  --muted-foreground: #b4b4b4;
+  --accent: #1c1c1c;
+  --accent-foreground: #fafafa;
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 14%);
+  --ring: rgb(255 225 77 / 60%);
+  /* every `font-sans` inside the site resolves to Inter Tight */
+  --font-geist-sans: "Inter Tight Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans);
+}
+
+.site .screen {
+  --background: #101010;
+  --card: #181818;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* the logo is a caption: always caption-yellow */
+.site .wordmark { color: var(--caption); }
+
+/* Playhead sweeping the "How it works" timeline */
+@keyframes playhead {
+  from { left: 0%; }
+  to { left: 100%; }
+}
+.playhead { animation: playhead 9s linear infinite; }
+
+/* Blinking caret for the editor recreation */
+@keyframes caret { 50% { opacity: 0; } }
+.caret { animation: caret 1s steps(1) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .playhead, .caret { animation: none; }
+}
