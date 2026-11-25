@@ -1,4 +1,4 @@
-import { drawCaptions, resolveFont } from "./captions/canvas"
+import { drawCaptions, fontsFor, type DrawOptions } from "./captions/canvas"
 import type { Aspect, CaptionStyle, Line, Word } from "./captions/types"
 
 const ASPECTS: Record<Exclude<Aspect, "original">, number> = { "9:16": 9 / 16, "1:1": 1, "16:9": 16 / 9 }
@@ -47,8 +47,10 @@ export async function exportVideo({ url, words, lines, style, aspect, onProgress
   canvas.height = H
   const ctx = canvas.getContext("2d")!
 
-  const font = resolveFont(style)
-  await document.fonts.load(font.replace("{px}", "48")) // make sure the font is ready before the first frame
+  // make sure the caption font is ready before the first frame
+  await Promise.all(fontsFor(style).map((f) => document.fonts.load(f))).catch(() => {})
+  // glass panels frost the frame underneath, which is already on this canvas when captions draw
+  const opts: DrawOptions = style.background === "glass" ? { backdrop: (c, w, h) => c.drawImage(canvas, 0, 0, w, h) } : {}
 
   // video audio → recorder, without playing through the speakers
   const actx = new AudioContext()
@@ -70,7 +72,7 @@ export async function exportVideo({ url, words, lines, style, aspect, onProgress
 
   const draw = () => {
     ctx.drawImage(video, dx, dy, dw, dh)
-    drawCaptions(ctx, W, H, words, lines, video.currentTime, style, font)
+    drawCaptions(ctx, W, H, words, lines, video.currentTime, style, opts)
     onProgress(video.duration ? video.currentTime / video.duration : 0)
   }
   const loop = () => {

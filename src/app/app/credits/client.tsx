@@ -98,8 +98,8 @@ export function PurchaseNotice() {
         <p className="text-sm opacity-85">{n.text}</p>
       </div>
       {key === "success" ? (
-        <Button size="sm" onClick={() => router.push("/app")}>
-          Open editor
+        <Button size="sm" onClick={() => router.push("/app/new")}>
+          New video
         </Button>
       ) : (
         <Button size="sm" variant="ghost" onClick={() => router.replace("/app/credits")}>

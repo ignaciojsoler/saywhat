@@ -1,22 +1,25 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ClipCaption, SampleVideo } from "@/components/saywhat/sample-clip"
+import { ClipCaption, DEMO_WORDS, SampleVideo } from "@/components/saywhat/sample-clip"
 import { prefersReducedMotion } from "@/components/saywhat/use-video-time"
 import { PRESETS } from "@/lib/captions/presets"
-import { SAMPLE_WORDS, timecode } from "@/lib/captions/sample-transcript"
+import { PROMO_DURATION } from "@/lib/captions/promo-transcript"
+import { timecode } from "@/lib/captions/sample-transcript"
 import { groupWords } from "@/lib/captions/timing"
 import { cn } from "@/lib/utils"
 
 const STYLE = PRESETS[0].style
 /** The word speech-to-text "misheard", and the fix typed over it. */
-const TYPO = "Bethany,"
-const FIX = "botany,"
-const TARGET = SAMPLE_WORDS.length - 1 // "botany," at 0:13.58
-const LINES = groupWords(SAMPLE_WORDS, STYLE.wordsPerLine)
+const TYPO = "MP3"
+const FIX = "MP4"
+const TARGET = Math.max(0, DEMO_WORDS.findIndex((w) => w.w === FIX)) // "…export an MP4…"
+const LINES = groupWords(DEMO_WORDS, STYLE.wordsPerLine)
 const TARGET_LINE = LINES.findIndex(([a, b]) => TARGET >= a && TARGET < b)
+/** transcript rows shown: a window of lines around the edited one */
+const SHOWN = LINES.slice(Math.max(0, TARGET_LINE - 4), TARGET_LINE + 4)
 /** Freeze-frame time for the preview: the corrected word is on screen. */
-const FRAME = SAMPLE_WORDS[TARGET].s + 0.3
+const FRAME = DEMO_WORDS[TARGET].s + 0.3
 
 type Phase = { text: string; state: "typo" | "select" | "typing" | "fixed" }
 
@@ -82,7 +85,7 @@ export function EditorDemo() {
   }, [script])
 
   const words = useMemo(() => {
-    const w = SAMPLE_WORDS.slice()
+    const w = DEMO_WORDS.slice()
     w[TARGET] = { ...w[TARGET], w: phase.state === "typo" || phase.state === "select" ? TYPO : phase.text || " " }
     return w
   }, [phase])
@@ -93,7 +96,7 @@ export function EditorDemo() {
       <div className="flex h-10 items-center gap-3 border-b border-white/10 px-3">
         <span className="wordmark text-[15px] leading-none">Saywhat</span>
         <span className="h-4 w-px bg-white/15" />
-        <span className="min-w-0 truncate font-mono text-xs text-white/75">forest-take-3.webm</span>
+        <span className="min-w-0 truncate font-mono text-xs text-white/75">saywhat-promo.mp4</span>
         <span className="ml-auto rounded-[5px] bg-[var(--caption)] px-2.5 py-1 text-xs font-semibold text-[#0a0a0a]">Export</span>
       </div>
 
@@ -102,10 +105,10 @@ export function EditorDemo() {
         <div className="order-2 border-t border-white/10 sm:order-1 sm:border-t-0 sm:border-r">
           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 text-xs">
             <span className="font-medium">Transcript</span>
-            <span className="font-mono text-white/75">{SAMPLE_WORDS.length} words</span>
+            <span className="font-mono text-white/75">{DEMO_WORDS.length} words</span>
           </div>
           <ol className="flex flex-col gap-px p-1.5 text-[13px]">
-            {LINES.slice(-8).map(([a, b]) => {
+            {SHOWN.map(([a, b]) => {
               const k = LINES.findIndex((l) => l[0] === a)
               const editing = k === TARGET_LINE
               return (
@@ -117,10 +120,10 @@ export function EditorDemo() {
                   )}
                 >
                   <span className={cn("w-14 shrink-0 font-mono text-xs tabular-nums", editing ? "text-[#ffb3a3]" : "text-white/75")}>
-                    {timecode(SAMPLE_WORDS[a].s)}
+                    {timecode(DEMO_WORDS[a].s)}
                   </span>
                   <span className="min-w-0">
-                    {SAMPLE_WORDS.slice(a, b).map((w, j) => {
+                    {DEMO_WORDS.slice(a, b).map((w, j) => {
                       const idx = a + j
                       if (idx !== TARGET) return <span key={idx}>{w.w} </span>
                       return <EditedWord key={idx} phase={phase} />
@@ -138,7 +141,7 @@ export function EditorDemo() {
             <SampleVideo ref={videoRef} autoPlay={false} preload="metadata" />
             <ClipCaption t={FRAME} style={STYLE} words={words} />
           </div>
-          <span className="font-mono text-xs text-white/75 tabular-nums">{timecode(FRAME)} / 00:15.00</span>
+          <span className="font-mono text-xs text-white/75 tabular-nums">{timecode(FRAME)} / {timecode(PROMO_DURATION)}</span>
         </div>
       </div>
     </div>

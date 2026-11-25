@@ -2,6 +2,7 @@
 
 import { create } from "zustand"
 import { DEFAULT_STYLE } from "@/lib/captions/presets"
+import { sanitizeStyle } from "@/lib/project-schema"
 import { groupWords, replaceLineText } from "@/lib/captions/timing"
 import type { Aspect, CaptionStyle, Line, Word } from "@/lib/captions/types"
 
@@ -9,6 +10,9 @@ type Snapshot = { words: Word[]; style: CaptionStyle }
 export type Phase = "idle" | "extracting" | "transcribing" | "ready" | "error"
 
 type State = {
+  /** the saved project being edited (null while uploading) */
+  projectId: string | null
+  title: string
   phase: Phase
   error: string | null
   file: File | null
@@ -24,8 +28,23 @@ type State = {
   future: Snapshot[]
 }
 
+export type Hydrate = {
+  projectId: string
+  title: string
+  file: File
+  words: Word[]
+  timingSource: "words" | "vtt"
+  /** null: the project has no saved style yet, use the last one this browser used */
+  style: CaptionStyle | null
+  aspect: Aspect
+}
+
 type Actions = {
   load: (file: File) => void
+  /** open a saved project: transcript and style from the server, the video from this device */
+  hydrate: (p: Hydrate) => void
+  setProjectId: (id: string) => void
+  setTitle: (title: string) => void
   setPhase: (phase: Phase, error?: string) => void
   setDuration: (d: number) => void
   setTranscript: (words: Word[], source: "words" | "vtt") => void
@@ -46,7 +65,7 @@ function savedStyle(): CaptionStyle {
   if (typeof window === "undefined") return DEFAULT_STYLE
   try {
     const raw = localStorage.getItem(STYLE_KEY)
-    return raw ? { ...DEFAULT_STYLE, ...JSON.parse(raw) } : DEFAULT_STYLE
+    return raw ? sanitizeStyle(JSON.parse(raw)) : DEFAULT_STYLE
   } catch {
     return DEFAULT_STYLE
   }
@@ -59,6 +78,8 @@ const persist = (style: CaptionStyle) => {
 }
 
 const initial = {
+  projectId: null as string | null,
+  title: "",
   phase: "idle" as Phase,
   error: null,
   file: null,
@@ -90,6 +111,26 @@ export const useEditor = create<State & Actions>((set, get) => {
       if (prev) URL.revokeObjectURL(prev)
       set({ ...initial, style: savedStyle(), file, videoUrl: URL.createObjectURL(file), phase: "extracting" })
     },
+    hydrate: (p) => {
+      const prev = get().videoUrl
+      if (prev) URL.revokeObjectURL(prev)
+      const style = p.style ? sanitizeStyle(p.style) : savedStyle()
+      set({
+        ...initial,
+        projectId: p.projectId,
+        title: p.title,
+        file: p.file,
+        videoUrl: URL.createObjectURL(p.file),
+        words: p.words,
+        timingSource: p.timingSource,
+        style,
+        aspect: p.aspect,
+        lines: groupWords(p.words, style.wordsPerLine),
+        phase: "ready",
+      })
+    },
+    setProjectId: (projectId) => set({ projectId }),
+    setTitle: (title) => set({ title }),
     setPhase: (phase, error) => set({ phase, error: error ?? null }),
     setDuration: (duration) => set({ duration }),
     setTranscript: (words, timingSource) =>

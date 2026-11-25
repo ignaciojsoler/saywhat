@@ -2,7 +2,6 @@
 
 import { CheckIcon } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
-import { AppHeader } from "@/components/account/app-header"
 import { cn } from "@/lib/utils"
 import type { Phase } from "@/store/editor"
 
@@ -15,9 +14,7 @@ const STEPS: { phase: Phase; label: string }[] = [
 export function Processing({ phase, fileName, videoUrl }: { phase: Phase; fileName: string; videoUrl: string | null }) {
   const current = STEPS.findIndex((s) => s.phase === phase)
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppHeader />
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-10 px-6 py-12 sm:flex-row sm:gap-14">
+    <div className="flex w-full flex-col items-center justify-center gap-10 py-10 sm:flex-row sm:gap-14">
         {videoUrl && (
           <div className="w-44 shrink-0 overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10">
             <video src={videoUrl} muted playsInline preload="metadata" className="aspect-[9/16] w-full object-cover opacity-80" />
@@ -27,7 +24,7 @@ export function Processing({ phase, fileName, videoUrl }: { phase: Phase; fileNa
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold tracking-tight">Captioning your video</h1>
             <p className="text-muted-foreground truncate text-sm">{fileName}</p>
-            <p className="text-muted-foreground/80 text-xs">Usually under 30 seconds. If it fails, your credit is refunded.</p>
+            <p className="text-muted-foreground text-xs">Usually under 30 seconds. If it fails, your credit is refunded.</p>
           </div>
           <ol className="flex flex-col gap-5" aria-live="polite">
             {STEPS.map((s, i) => {
@@ -50,7 +47,6 @@ export function Processing({ phase, fileName, videoUrl }: { phase: Phase; fileNa
             })}
           </ol>
         </div>
-      </main>
     </div>
   )
 }

@@ -3,7 +3,7 @@ import type { Word } from "./captions/types"
 
 export const MAX_SECONDS = 120
 
-type Result = { words: Word[]; source: "words" | "vtt"; credits: number }
+type Result = { words: Word[]; source: "words" | "vtt"; credits: number; projectId: string; duration: number }
 
 /** Thrown when the server refuses because the balance is empty (HTTP 402). */
 export class OutOfCreditsError extends Error {
@@ -13,7 +13,7 @@ export class OutOfCreditsError extends Error {
   }
 }
 
-/** Video → 16 kHz audio in the browser → Whisper (via /api/transcribe, 1 credit) → timed words. */
+/** Video → 16 kHz audio in the browser → Whisper (via /api/transcribe, 1 credit) → timed words, saved as a project. */
 export async function transcribeFile(
   file: File,
   hooks: { onTranscribing: () => void; onCredits?: (n: number) => void },
@@ -31,7 +31,12 @@ export async function transcribeFile(
   hooks.onTranscribing()
   const res = await fetch("/api/transcribe", {
     method: "POST",
-    headers: { "Content-Type": "audio/wav", "X-File-Name": encodeURIComponent(file.name) },
+    headers: {
+      "Content-Type": "audio/wav",
+      "X-File-Name": encodeURIComponent(file.name),
+      "X-File-Size": String(file.size),
+      "X-Duration": audio.duration.toFixed(3),
+    },
     body: toWav(audio),
   })
   const data = (await res.json().catch(() => ({}))) as Partial<Result> & { error?: string; code?: string }
@@ -40,5 +45,6 @@ export async function transcribeFile(
   if (res.status === 401) throw new Error("Your session expired. Sign in again.")
   if (!res.ok) throw new Error(data.error ?? "Transcription failed. Try again in a moment.")
   if (!data.words?.length) throw new Error("No speech found in this video.")
-  return { words: data.words, source: data.source ?? "words", credits: data.credits ?? 0 }
+  if (!data.projectId) throw new Error("Couldn't save your captions. Try again in a moment.")
+  return { words: data.words, source: data.source ?? "words", credits: data.credits ?? 0, projectId: data.projectId, duration: audio.duration }
 }

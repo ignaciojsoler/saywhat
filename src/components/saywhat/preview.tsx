@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import { PauseIcon, PlayIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { CaptionText } from "./caption-text"
+import { CaptionCanvas } from "./caption-text"
 import { Timeline } from "./timeline"
-import { activeLineAt, activeWordAt } from "@/lib/captions/timing"
+import { activeLineAt } from "@/lib/captions/timing"
 import { clock } from "@/lib/captions/formats"
 import { aspectRatio } from "@/lib/export-video"
 import type { Aspect } from "@/lib/captions/types"
@@ -24,16 +24,10 @@ function LiveCaptions() {
   const words = useEditor((s) => s.words)
   const lines = useEditor((s) => s.lines)
   const style = useEditor((s) => s.style)
-  // select only the active line/word: re-render when they change, not every frame
-  const k = usePlayer((s) => activeLineAt(words, lines, s.time))
-  const on = usePlayer((s) => (k >= 0 ? activeWordAt(words, lines[k], s.time) : -1))
-  if (k < 0) return null
-  const [a, b] = lines[k]
-  return (
-    <div className="pointer-events-none absolute inset-x-[6%]" style={{ bottom: `${style.position}%` }}>
-      <CaptionText words={words.slice(a, b).map((w) => w.w)} active={on - a} style={style} />
-    </div>
-  )
+  const video = usePlayer((s) => s.video)
+  // every frame while a line is on screen (motion is a function of time); nothing in the gaps
+  const t = usePlayer((s) => (activeLineAt(words, lines, s.time) >= 0 ? s.time : -1))
+  return <CaptionCanvas words={words} lines={lines} t={t} style={style} video={video} />
 }
 
 export function Preview() {
@@ -57,8 +51,13 @@ export function Preview() {
   }, [])
 
   useEffect(() => {
-    setVideo(ref.current)
-    return () => setVideo(null)
+    const v = ref.current
+    setVideo(v)
+    return () => {
+      // Next keeps visited pages mounted but hidden: don't keep playing behind another page
+      v?.pause()
+      setVideo(null)
+    }
   }, [setVideo])
 
   // while playing, publish the current time every frame

@@ -1,82 +1,135 @@
 "use client"
 
-import type { CSSProperties } from "react"
-import { FONTS, type CaptionStyle } from "@/lib/captions/types"
+// caption typefaces not loaded by the root layout (which ships Montserrat 900, Bebas, Poppins, Inter)
+import "@fontsource-variable/inter-tight/index.css"
+import "@fontsource-variable/bricolage-grotesque/index.css"
+import "@fontsource/instrument-serif/400.css"
+import "@fontsource/instrument-serif/400-italic.css"
+import "@fontsource/montserrat/800.css"
+
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { coverRect, drawCaptions, fontsFor, type DrawOptions } from "@/lib/captions/canvas"
+import { groupWords } from "@/lib/captions/timing"
+import type { CaptionStyle, Line, Word } from "@/lib/captions/types"
 import { cn } from "@/lib/utils"
 
-/**
- * Render one caption line in the given style. Mirrors the export canvas:
- * sizes are relative to the container height (cqh units).
- * `active` = index of the word being spoken (-1 if none).
- */
-/**
- * Outline built from text-shadows in 16 directions. -webkit-text-stroke paints over the fill
- * in browsers without paint-order support on HTML text, which makes letters look hollow.
- */
-function outlineShadow(widthEm: number, color: string) {
-  if (widthEm <= 0) return []
-  return Array.from({ length: 16 }, (_, i) => {
-    const a = (i / 16) * Math.PI * 2
-    return `${(Math.cos(a) * widthEm).toFixed(3)}em ${(Math.sin(a) * widthEm).toFixed(3)}em 0 ${color}`
-  })
+/** Device pixel ratio, capped: beyond 2x the text is no sharper but costs 2x more to paint. */
+const dpr = () => (typeof window === "undefined" ? 1 : Math.min(2, window.devicePixelRatio || 1))
+
+/** Bumps when the style's fonts finish loading, so the canvas redraws with the real face. */
+function useFontsReady(style: CaptionStyle) {
+  const [version, setVersion] = useState(0)
+  const key = fontsFor(style).join("|")
+  useEffect(() => {
+    const fonts = key.split("|")
+    if (fonts.every((f) => document.fonts.check(f))) return
+    let alive = true
+    Promise.all(fonts.map((f) => document.fonts.load(f)))
+      .catch(() => {})
+      .then(() => alive && setVersion((v) => v + 1))
+    return () => {
+      alive = false
+    }
+  }, [key])
+  return version
 }
 
-export function CaptionText({
-  words,
-  active,
-  style,
-  className,
-}: {
-  words: string[]
-  active: number
-  style: CaptionStyle
-  className?: string
-}) {
-  const visible = style.animation === "single" ? (active >= 0 ? [active] : []) : words.map((_, i) => i)
-  if (!visible.length) return null
+/** Draw a video "object-fit: cover" into w×h. */
+function paintCover(ctx: CanvasRenderingContext2D, v: HTMLVideoElement, w: number, h: number, pos: [number, number]) {
+  if (v.readyState < 2 || !v.videoWidth) return false
+  const r = coverRect(v.videoWidth, v.videoHeight, w, h, pos[0], pos[1])
+  ctx.drawImage(v, r.dx, r.dy, r.dw, r.dh)
+  return true
+}
 
-  const css = {
-    "--fs": `${style.size}cqh`,
-    fontFamily: FONTS[style.font].css,
-    fontWeight: FONTS[style.font].weight,
-    fontSize: "var(--fs)",
-    lineHeight: 1.2,
-    color: style.color,
-    textTransform: style.uppercase ? "uppercase" : "none",
-    textShadow:
-      [...outlineShadow(style.stroke / 100, style.strokeColor), ...(style.shadow ? ["0 0.06em 0.18em rgba(0,0,0,.6)"] : [])].join(
-        ", ",
-      ) || undefined,
-  } as CSSProperties
+/**
+ * Captions for time `t`, drawn on a canvas that covers its (positioned) parent, which plays
+ * the role of the video frame. It uses the exact renderer of the MP4 export, so the preview
+ * is what gets burned in. Animation is a pure function of `t` (video time).
+ */
+export function CaptionCanvas({
+  words,
+  lines,
+  t,
+  style,
+  video,
+  paintVideo = false,
+  objectPosition = [0.5, 0.5],
+  className,
+  label,
+}: {
+  words: Word[]
+  /** precomputed lines; grouped from `style.wordsPerLine` when omitted */
+  lines?: Line[]
+  t: number
+  style: CaptionStyle
+  /** the video under the captions: frosted by glass panels, and painted as background with `paintVideo` */
+  video?: HTMLVideoElement | null
+  paintVideo?: boolean
+  /** focus of the cover crop, like CSS object-position (0–1) */
+  objectPosition?: [number, number]
+  className?: string
+  /** accessible text; the canvas is decorative without it */
+  label?: string
+}) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  const [size, setSize] = useState({ w: 0, h: 0 })
+  const fontsVersion = useFontsReady(style)
+  const grouped = useMemo(() => lines ?? groupWords(words, style.wordsPerLine), [lines, words, style.wordsPerLine])
+  const [px, py] = objectPosition
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => {
+      const k = dpr()
+      setSize({ w: Math.round(e.contentRect.width * k), h: Math.round(e.contentRect.height * k) })
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // when painting the video while paused (seek, first load), redraw once the new frame is actually presented
+  const [frameTick, setFrameTick] = useState(0)
+  const usesFrame = !!video && (paintVideo || style.background === "glass")
+  useEffect(() => {
+    if (!video || !usesFrame) return
+    const bump = () => setFrameTick((n) => n + 1)
+    const onFrame = () => {
+      if ("requestVideoFrameCallback" in video) video.requestVideoFrameCallback(bump)
+      else requestAnimationFrame(bump)
+    }
+    video.addEventListener("seeked", onFrame)
+    video.addEventListener("loadeddata", onFrame)
+    return () => {
+      video.removeEventListener("seeked", onFrame)
+      video.removeEventListener("loadeddata", onFrame)
+    }
+  }, [video, usesFrame])
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el || !size.w || !size.h) return
+    if (el.width !== size.w) el.width = size.w
+    if (el.height !== size.h) el.height = size.h
+    const ctx = el.getContext("2d")
+    if (!ctx) return
+    ctx.clearRect(0, 0, size.w, size.h)
+    const pos: [number, number] = [px, py]
+    if (video && paintVideo) paintCover(ctx, video, size.w, size.h, pos)
+    const opts: DrawOptions = {}
+    if (video && style.background === "glass")
+      opts.backdrop = (c, w, h) => {
+        if (!paintCover(c, video, w, h, pos)) c.clearRect(0, 0, w, h)
+      }
+    drawCaptions(ctx, size.w, size.h, words, grouped, t, style, opts)
+  }, [t, style, words, grouped, size, fontsVersion, video, paintVideo, px, py, frameTick])
 
   return (
-    <div className={cn("flex flex-wrap justify-center gap-x-[0.28em] text-center", className)} style={css}>
-      <span
-        className="inline-flex flex-wrap justify-center gap-x-[0.28em] rounded-[0.2em] px-[0.35em] [box-decoration-break:clone]"
-        style={style.box ? { background: style.boxColor } : undefined}
-      >
-        {visible.map((i) => {
-          const isActive = i === active
-          let color: string | undefined
-          let opacity = 1
-          if ((style.animation === "karaoke" || style.animation === "pop") && isActive) color = style.activeColor
-          if (style.animation === "karaoke" && i > active) opacity = 0.55
-          return (
-            <span
-              key={i}
-              className="inline-block transition-[transform,margin] duration-75"
-              style={{
-                color,
-                opacity,
-                transform: style.animation === "pop" && isActive ? "scale(1.1)" : undefined,
-                marginInline: style.animation === "pop" && isActive ? "0.06em" : undefined,
-              }}
-            >
-              {words[i]}
-            </span>
-          )
-        })}
-      </span>
-    </div>
+    <canvas
+      ref={ref}
+      className={cn("pointer-events-none absolute inset-0 size-full", className)}
+      {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
+    />
   )
 }

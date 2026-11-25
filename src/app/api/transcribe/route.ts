@@ -1,11 +1,13 @@
 import { z } from "zod"
 import { auth } from "@/lib/auth"
-import { refundCredit, spendCredit } from "@/lib/credits"
+import { transcribeToProject, type Transcript } from "@/lib/transcription"
 
 /**
- * POST /api/transcribe — body: WAV 16 kHz mono (generated in the browser) → { text, words, source }
+ * POST /api/transcribe — body: WAV 16 kHz mono (generated in the browser) → { text, words, source, projectId, credits }
+ * Headers: X-File-Name (URI-encoded), X-File-Size (bytes), X-Duration (seconds) describe the original video.
  * Whisper runs on Cloudflare Workers AI; credentials live in environment variables.
- * Requires a session and costs 1 credit, refunded if transcription fails.
+ * Requires a session and costs 1 credit, refunded if transcription fails. On success the transcript is saved
+ * as a project (text only: the audio is discarded and the video never leaves the browser).
  */
 
 const MODEL = "@cf/openai/whisper" // MIT
@@ -66,20 +68,20 @@ export async function POST(request: Request) {
   if (!audio.byteLength) return fail("The audio is empty", 400)
   if (audio.byteLength > MAX_BYTES) return fail("This video is too long. The limit is 2 minutes.", 413)
 
-  const userId = session.user.id
-  const note = safeDecode(request.headers.get("x-file-name") ?? "video").slice(0, 120)
-  const credits = await spendCredit(userId, note)
-  if (credits === null) return fail("You're out of credits.", 402, "no_credits")
-
-  const res = await transcribe(audio, CF_ACCOUNT_ID, CF_API_TOKEN)
-  if ("error" in res) {
-    const refunded = await refundCredit(userId, note)
-    return Response.json({ error: res.error, credits: refunded }, { status: res.status })
+  const num = (h: string) => {
+    const n = Number(request.headers.get(h))
+    return Number.isFinite(n) && n > 0 ? n : 0
   }
-  return Response.json({ ...res, credits })
-}
+  const meta = {
+    fileName: safeDecode(request.headers.get("x-file-name") ?? "video").slice(0, 255) || "video",
+    fileSize: num("x-file-size"),
+    duration: num("x-duration"),
+  }
 
-type Transcript = { text: string; words: Word[]; source: "words" | "vtt" }
+  const out = await transcribeToProject(session.user.id, audio, meta, (a) => transcribe(a, CF_ACCOUNT_ID, CF_API_TOKEN))
+  if (!out.ok) return Response.json({ error: out.error, code: out.code, credits: out.credits }, { status: out.status })
+  return Response.json({ ...out.transcript, projectId: out.projectId, credits: out.credits })
+}
 
 async function transcribe(audio: ArrayBuffer, CF_ACCOUNT_ID: string, CF_API_TOKEN: string): Promise<Transcript | { error: string; status: number }> {
   const fail = (error: string, status: number) => ({ error, status })

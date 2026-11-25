@@ -1,12 +1,11 @@
 "use client"
 
 import { useEffect } from "react"
-import { PlusIcon, Redo2Icon, Undo2Icon } from "lucide-react"
+import Link from "next/link"
+import { ChevronRightIcon, Redo2Icon, Undo2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { AccountMenu, CreditsPill } from "@/components/account/account-menu"
-import { Logo } from "@/components/site/logo"
 import { ExportMenu } from "./export-menu"
 import { Preview } from "./preview"
 import { StylePanel } from "./style-panel"
@@ -59,34 +58,36 @@ function IconAction({ label, onClick, disabled, children }: { label: string; onC
   )
 }
 
-export function Editor() {
+/** The editing workspace. Fills its container; the page around it provides the app shell. */
+export function Editor({ title, status }: { title?: React.ReactNode; status?: React.ReactNode }) {
   useShortcuts()
   const fileName = useEditor((s) => s.file?.name ?? "")
   const canUndo = useEditor((s) => s.past.length > 0)
   const canRedo = useEditor((s) => s.future.length > 0)
-  const { undo, redo, reset } = useEditor.getState()
+  const { undo, redo } = useEditor.getState()
 
   return (
-    <div className="flex h-dvh flex-col">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
-        <Logo href={null} className="text-lg" />
-        <Separator orientation="vertical" className="h-5" />
-        <span className="text-muted-foreground min-w-0 truncate text-sm">{fileName}</span>
-        <div className="ml-auto flex items-center gap-1">
+    <div className="flex h-[calc(100dvh-3.5rem)] flex-col md:h-dvh">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b px-3 sm:px-4">
+        <nav aria-label="Breadcrumb" className="flex min-w-0 flex-1 items-center gap-1.5 text-sm">
+          <Link
+            href="/app"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring hidden shrink-0 rounded-sm transition-colors outline-none focus-visible:ring-2 sm:inline"
+          >
+            Videos
+          </Link>
+          <ChevronRightIcon className="text-muted-foreground hidden size-3.5 shrink-0 sm:block" aria-hidden />
+          {title ?? <span className="truncate">{fileName}</span>}
+          {status}
+        </nav>
+        <div className="flex shrink-0 items-center gap-1">
           <IconAction label="Undo (Ctrl+Z)" onClick={undo} disabled={!canUndo}>
             <Undo2Icon />
           </IconAction>
           <IconAction label="Redo (Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>
             <Redo2Icon />
           </IconAction>
-          <Button size="sm" variant="ghost" onClick={reset}>
-            <PlusIcon />
-            New video
-          </Button>
           <ExportMenu />
-          <Separator orientation="vertical" className="mx-1 h-5" />
-          <CreditsPill className="hidden sm:inline-flex" />
-          <AccountMenu />
         </div>
       </header>
 

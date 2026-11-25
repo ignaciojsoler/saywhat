@@ -3,50 +3,54 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
-import { CaptionText } from "@/components/saywhat/caption-text"
+import { CaptionCanvas } from "@/components/saywhat/caption-text"
 import { PRESETS } from "@/lib/captions/presets"
+import type { Word } from "@/lib/captions/types"
 
-const WORDS = ["Your", "turn."]
-const STYLE = { ...PRESETS[0].style, size: 72 }
+/** "Your turn." as a timed caption; the loop replays it like a clip. */
+const WORDS: Word[] = [
+  { w: "Your", s: 0.35, e: 0.75 },
+  { w: "turn.", s: 0.8, e: 1.5 },
+]
+const LOOP = 3.4
+/** server HTML / reduced motion: both words on screen, settled */
+const STILL = 1.6
+const STYLE = { ...PRESETS[0].style, size: 62, position: 12, wordsPerLine: 2 }
 
-/** Full-bleed dark band with the CTA phrase "spoken" as a giant Pop caption while in view. */
+/** Full-bleed dark band with the CTA phrase "spoken" as a giant Creator caption while in view. */
 export function FinalCta({ freeCredits }: { freeCredits: number }) {
   const ref = useRef<HTMLDivElement>(null)
-  // server HTML: last word highlighted, a sensible still frame
-  const [active, setActive] = useState(WORDS.length - 1)
+  const [t, setT] = useState(STILL)
 
   useEffect(() => {
     const el = ref.current
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
-    // -1 (pause) -> 0 -> 1 -> hold, on a loop
-    const beats = [-1, 0, 1, 1, 1, 1, 1]
-    let i = 0
-    let timer = 0
-    const tick = () => {
-      setActive(beats[i])
-      i = (i + 1) % beats.length
-      timer = window.setTimeout(tick, 420)
+    // a synthetic clip clock: this band has no video, so time is the loop position
+    let id = 0
+    let t0 = 0
+    const tick = (now: number) => {
+      if (!t0) t0 = now
+      setT(((now - t0) / 1000) % LOOP)
+      id = requestAnimationFrame(tick)
     }
     const io = new IntersectionObserver(([e]) => {
-      clearTimeout(timer)
-      if (e.isIntersecting) {
-        i = 0
-        tick()
-      }
+      cancelAnimationFrame(id)
+      t0 = 0
+      if (e.isIntersecting) id = requestAnimationFrame(tick)
     })
     io.observe(el)
     return () => {
       io.disconnect()
-      clearTimeout(timer)
+      cancelAnimationFrame(id)
     }
   }, [])
 
   return (
     <section className="screen border-t border-white/10">
       <div ref={ref} className="mx-auto flex w-full max-w-6xl flex-col items-center gap-10 px-5 py-20 text-center sm:px-6 sm:py-28">
-        {/* CaptionText sizes in cqh: this box is the "frame" */}
-        <div className="h-[clamp(4.5rem,15vw,11rem)] w-full [container-type:size]" role="img" aria-label="Your turn.">
-          <CaptionText words={WORDS} active={active} style={STYLE} className="leading-none" />
+        {/* the caption canvas fills this box, which acts as the "frame" */}
+        <div className="relative h-[clamp(5rem,16vw,12rem)] w-full">
+          <CaptionCanvas words={WORDS} t={t} style={STYLE} label="Your turn." />
         </div>
         <p className="text-muted-foreground max-w-md text-lg text-pretty">
           Bring your own clip. The first {freeCredits} are on us, no card needed.

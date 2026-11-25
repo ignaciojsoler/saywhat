@@ -3,7 +3,9 @@ import type { Line, Word } from "./types"
 /** Pause (s) that ends a line even if it isn't full. */
 const GAP_BREAK = 0.6
 /** How long a line stays on screen after its last word. */
-const HOLD = 0.4
+export const HOLD = 0.4
+/** A line appears this much before its first word is heard. */
+export const LEAD = 0.05
 
 /**
  * Group words into short lines, breaking on count, long pauses and sentence ends.
@@ -32,7 +34,7 @@ export function activeLineAt(words: Word[], lines: Line[], t: number): number {
   let hi = lines.length - 1
   while (lo <= hi) {
     const mid = (lo + hi) >> 1
-    if (words[lines[mid][0]].s - 0.05 <= t) {
+    if (words[lines[mid][0]].s - LEAD <= t) {
       k = mid
       lo = mid + 1
     } else hi = mid - 1

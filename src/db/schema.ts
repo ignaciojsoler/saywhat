@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm"
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 const now = sql`(cast(unixepoch('subsecond') * 1000 as integer))`
 const timestamps = {
@@ -116,4 +116,37 @@ export const creditLedger = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp_ms" }).default(now).notNull(),
   },
   (t) => [index("ledger_user_idx").on(t.userId, t.createdAt)],
+)
+
+/* ---------- Projects ("My videos") ---------- */
+
+/**
+ * A captioned video. Text data only: the video file itself never leaves the user's browser
+ * (it's kept in IndexedDB on the device that uploaded it).
+ */
+export const project = sqliteTable(
+  "project",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    /** original file metadata, used to match the file when relinking it on another device */
+    fileName: text("file_name").notNull(),
+    fileSize: integer("file_size").notNull().default(0),
+    /** seconds */
+    duration: real("duration").notNull().default(0),
+    /** output frame: original | 9:16 | 1:1 | 16:9 */
+    aspect: text("aspect").notNull().default("original"),
+    /** transcript: [{ w, s, e }] (word, start, end in seconds) */
+    words: text("words", { mode: "json" }).$type<{ w: string; s: number; e: number }[]>().notNull(),
+    /** caption style (CaptionStyle); null until the editor saves one */
+    style: text("style", { mode: "json" }).$type<Record<string, unknown>>(),
+    /** words = per-word timing from Whisper, vtt = approximated per sentence */
+    timingSource: text("timing_source", { enum: ["words", "vtt"] }).notNull().default("words"),
+    lastExportedAt: integer("last_exported_at", { mode: "timestamp_ms" }),
+    ...timestamps,
+  },
+  (t) => [index("project_user_idx").on(t.userId, t.updatedAt)],
 )

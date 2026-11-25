@@ -2,10 +2,10 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Suspense } from "react"
 import { desc, eq } from "drizzle-orm"
-import { ArrowLeftIcon, CheckIcon, ShieldCheckIcon } from "lucide-react"
+import { CheckIcon, ShieldCheckIcon } from "lucide-react"
 import { db } from "@/db"
 import { creditLedger } from "@/db/schema"
-import { AppHeader } from "@/components/account/app-header"
+import { Page, PageHeader } from "@/components/shell/page-header"
 import { headers } from "next/headers"
 import { BuyButton, PurchaseNotice } from "./client"
 import { requireAccount } from "@/lib/session"
@@ -18,38 +18,26 @@ export const metadata: Metadata = { title: "Credits · Saywhat" }
 
 export default function CreditsPage({ searchParams }: PageProps<"/app/credits">) {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <AppHeader>
-        <Link
-          href="/app"
-          className="text-muted-foreground hover:text-foreground ml-2 hidden items-center gap-1.5 text-sm transition-colors sm:inline-flex"
-        >
-          <ArrowLeftIcon className="size-4" />
-          Back to editor
-        </Link>
-      </AppHeader>
+    <Page className="gap-12">
+      <PageHeader title="Credits & billing" description="1 credit captions 1 video. Credits never expire." />
 
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-12 px-5 py-10 sm:px-6 sm:py-14">
-        <Suspense>
-          <PurchaseNotice />
+      <Suspense>
+        <PurchaseNotice />
+      </Suspense>
+
+      <section className="flex flex-col gap-6" aria-labelledby="buy-credits">
+        <h2 id="buy-credits" className="text-xl font-semibold tracking-tight">
+          Buy credits
+        </h2>
+        <Suspense fallback={<PacksSkeleton />}>
+          <Packs searchParams={searchParams} />
         </Suspense>
+      </section>
 
-        <section className="flex flex-col gap-8">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Buy credits</h1>
-            <p className="text-muted-foreground text-lg">1 credit captions 1 video. Credits never expire.</p>
-          </div>
-
-          <Suspense fallback={<PacksSkeleton />}>
-            <Packs searchParams={searchParams} />
-          </Suspense>
-        </section>
-
-        <Suspense fallback={<HistorySkeleton />}>
-          <History />
-        </Suspense>
-      </main>
-    </div>
+      <Suspense fallback={<HistorySkeleton />}>
+        <History />
+      </Suspense>
+    </Page>
   )
 }
 
