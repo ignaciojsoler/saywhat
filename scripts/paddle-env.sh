@@ -19,7 +19,9 @@ PADDLE_WEBHOOK_SECRET="$(ask PADDLE_WEBHOOK_SECRET)"
 [[ "$PADDLE_PRODUCT_ID" == pro_* ]] || { echo "PADDLE_PRODUCT_ID should start with pro_"; exit 1; }
 
 for k in PADDLE_ENV PADDLE_PRODUCT_ID PADDLE_API_KEY NEXT_PUBLIC_PADDLE_CLIENT_TOKEN PADDLE_WEBHOOK_SECRET; do
-  printf '%s' "${!k}" | vercel env add "$k" "$TARGET" --force --yes >/dev/null
+  # Paddle's client-side token is public by design (Paddle.js needs it in the browser)
+  type=secret; [[ "$k" == NEXT_PUBLIC_* || "$k" == PADDLE_ENV ]] && type=config
+  printf '%s' "${!k}" | vercel env add "$k" "$TARGET" --type "$type" --force --yes >/dev/null
   echo "  set  $k"
 done
 echo "Done. Redeploy so the client token is baked into the build: vercel deploy --prod --yes"
