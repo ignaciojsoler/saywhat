@@ -26,7 +26,7 @@ function Section({ title, description, children, className }: { title: string; d
   )
 }
 
-const field = "h-10 text-sm md:text-sm"
+const field = "h-10 text-base md:text-sm"
 
 export function SettingsView({ hasPassword, google }: { hasPassword: boolean; google: boolean }) {
   return (

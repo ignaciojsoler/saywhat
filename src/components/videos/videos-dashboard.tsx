@@ -187,7 +187,7 @@ export function VideosDashboard({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search videos"
             aria-label="Search videos by title"
-            className="h-9 pl-9 text-sm md:text-sm"
+            className="h-9 pl-9 text-base md:text-sm"
           />
         </div>
         <div className="flex items-center gap-2 sm:ml-auto">

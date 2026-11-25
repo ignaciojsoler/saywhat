@@ -17,3 +17,9 @@ export async function HeaderSession({ fallback }: { fallback: React.ReactNode })
     </Button>
   )
 }
+
+/** Session-aware slot for the mobile menu: guests get the fallback ("Log in"), members get nothing. */
+export async function MenuSession({ fallback }: { fallback: React.ReactNode }) {
+  const account = await getAccount().catch(() => null)
+  return account ? null : fallback
+}

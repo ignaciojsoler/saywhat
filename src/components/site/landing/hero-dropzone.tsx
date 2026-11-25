@@ -90,12 +90,12 @@ export function HeroDropzone() {
         if (f) void handleFile(f)
       }}
       className={cn(
-        "relative group rounded-2xl border p-2 pl-5 backdrop-blur-md transition-colors flex items-center gap-4",
+        "relative group rounded-2xl border backdrop-blur-md transition-colors flex flex-col items-stretch gap-3 p-3 pt-4 sm:flex-row sm:items-center sm:gap-4 sm:p-2 sm:pl-5",
         dragging ? "border-white/50 bg-white/[0.07]" : "border-white/15 bg-white/[0.04] hover:border-white/35",
       )}
     >
-      <div className="flex items-center gap-3">
-        <UploadIcon className="size-5 text-white/70" />
+      <div className="flex items-center gap-3 px-2 sm:px-0">
+        <UploadIcon className="size-5 shrink-0 text-white/70" />
         <div className="flex flex-col">
           <span className="font-semibold text-white">Drop your video here</span>
           <span className="text-sm text-white/60">MP4, MOV or WebM</span>
@@ -104,7 +104,7 @@ export function HeroDropzone() {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="ml-auto inline-flex h-12 items-center justify-center rounded-full bg-white px-7 font-semibold text-black transition hover:shadow-[0_0_40px_rgba(255,255,255,0.25)]"
+        className="inline-flex h-12 shrink-0 items-center justify-center rounded-full bg-white px-7 font-semibold whitespace-nowrap sm:ml-auto text-black transition hover:shadow-[0_0_40px_rgba(255,255,255,0.25)]"
       >
         Upload video
       </button>
